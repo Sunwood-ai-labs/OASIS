@@ -11,4 +11,4 @@ class Config:
     END_POINT_URL = f"{BASE_URL}/wp-json/wp/v2/posts/"
     MEDIA_ENDPOINT = f"{BASE_URL}/wp-json/wp/v2/media"
     
-    os.environ["GEMINI_API_KEY"] = os.getenv('GEMINI_API_KEY')
+    os.environ["GEMINI_API_KEY"] = os.getenv('GEMINI_API_KEY') or "YOUR_DEFAULT_API_KEY_HERE"
