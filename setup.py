@@ -5,14 +5,14 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="oasis-article",
-    version="0.1.4",
+    version="0.1.5",
     author="Sunwood-ai-labs",
     author_email="sunwood.ai.labs@gmail.com",
     description="WordPressへの投稿を自動化するパッケージ",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Sunwood-ai-labs/OASIS",
-    packages=find_packages(include=['oasis', 'oasis.*']),
+    packages=find_packages(include=['oasis', 'oasis.*', 'oasis/*']),
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
