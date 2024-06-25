@@ -8,3 +8,5 @@ docuMind-output: ".SourceSageAssets/DOCUMIND/RELEASE_NOTES_v0.1.0.md"
 docuMind-prompt-output: ".SourceSageAssets/DOCUMIND/_PROMPT_v0.1.0.md"
 repo-name: "OASIS"
 repo-version: "v0.1.0"
+
+# sourcesage --mode=DocuMind --yaml-file=docs\.sourcesage_releasenotes.yml
