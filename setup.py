@@ -11,7 +11,7 @@ setup(
     description="WordPressへの投稿を自動化するパッケージ",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/oasis",
+    url="https://github.com/Sunwood-ai-labs/OASIS",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",
