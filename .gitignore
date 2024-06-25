@@ -165,4 +165,5 @@ tmp2.md
 .Prothiel.md
 .Gaiah.md
 .SourceSageAssets
-article_draft/
+article_draft/*
+articles_draft
