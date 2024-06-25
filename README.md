@@ -5,12 +5,12 @@
 <h2 align="center">
   ～ Optimized Article Sorting Intelligent System ～
 <br>
-  <img alt="PyPI - Version" src="https://img.shields.io/pypi/v/OASIS">
-<img alt="PyPI - Format" src="https://img.shields.io/pypi/format/OASIS">
-<img alt="PyPI - Implementation" src="https://img.shields.io/pypi/implementation/OASIS">
-<img alt="PyPI - Status" src="https://img.shields.io/pypi/status/OASIS">
-<img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dd/OASIS">
-<img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dw/OASIS">
+  <img alt="PyPI - Version" src="https://img.shields.io/pypi/v/oasis-article">
+<img alt="PyPI - Format" src="https://img.shields.io/pypi/format/oasis-article">
+<img alt="PyPI - Implementation" src="https://img.shields.io/pypi/implementation/oasis-article">
+<img alt="PyPI - Status" src="https://img.shields.io/pypi/status/oasis-article">
+<img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dd/oasis-article">
+<img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dw/oasis-article">
 <a href="https://github.com/Sunwood-ai-labs/OASIS" title="Go to GitHub repo"><img src="https://img.shields.io/static/v1?label=OASIS&message=Sunwood-ai-labs&color=blue&logo=github"></a>
 <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/Sunwood-ai-labs/OASIS">
 <a href="https://github.com/Sunwood-ai-labs/OASIS"><img alt="forks - Sunwood-ai-labs" src="https://img.shields.io/github/forks/OASIS/Sunwood-ai-labs?style=social"></a>
