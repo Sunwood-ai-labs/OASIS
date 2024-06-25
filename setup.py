@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="oasis-article",
-    version="0.1.7",
+    version="0.1.8",
     author="Sunwood-ai-labs",
     author_email="sunwood.ai.labs@gmail.com",
     description="WordPressへの投稿を自動化するパッケージ",
@@ -45,8 +45,8 @@ setup(
     # パッケージに含めるデータファイル
     package_data={
         'oasis': [
-            'models/*',
-            'services/*',
+            'models/**/*',
+            'services/**/*',
         ],
     },
     include_package_data=True,
