@@ -1,7 +1,8 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+# 現在の作業ディレクトリの.envファイルを読み込む
+load_dotenv(dotenv_path=os.path.join(os.getcwd(), '.env'))
 
 class Config:
     AUTH_USER = os.getenv('AUTH_USER')
