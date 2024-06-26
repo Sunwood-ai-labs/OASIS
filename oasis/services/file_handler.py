@@ -19,8 +19,9 @@ class FileHandler:
             # タイトルを抽出（最初の#で始まる行）
             lines = content.split('\n')
             title = next((line.strip('# ') for line in lines if line.startswith('#')), "デフォルトタイトル")
-            # タイトル行を除いたコンテンツ
-            content = '\n'.join(line for line in lines if not line.startswith('#'))
+            
+            # タイトル行を除いたコンテンツ（他の見出しは保持）
+            content = '\n'.join(lines[lines.index(next(line for line in lines if line.startswith('#')))+1:])
 
             return content.strip(), title
 
