@@ -51,7 +51,7 @@ OASISを使用すると、MarkdownファイルからWordPressへの投稿を効�
 ## インストール
 
 ```bash
-pip install oasis-article
+pip install -U oasis-article
 ```
 
 ## 使用方法
