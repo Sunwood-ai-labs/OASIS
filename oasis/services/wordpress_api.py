@@ -188,7 +188,7 @@ if __name__ == "__main__":
         class TestPost:
             def __init__(self):
                 self.title = "テスト投稿"
-                self.content = "これはテスト投稿です。"
+                self.content = "# これはテスト投稿です。 \n ## 見出し1 \n aaaa \n ## 見出し2 \n bbb"
                 self.slug = "test-post"
                 self.categories = [{"name": "テストカテゴリ", "slug": "test-category"}]
                 self.tags = [{"name": "テストタグ", "slug": "test-tag"}]
