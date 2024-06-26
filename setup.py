@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="oasis-article",
-    version="0.1.12",
+    version="0.2.0",
     author="Sunwood-ai-labs",
     author_email="sunwood.ai.labs@gmail.com",
     description="WordPressへの投稿を自動化するパッケージ",
