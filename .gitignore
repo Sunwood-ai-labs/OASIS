@@ -167,3 +167,5 @@ tmp2.md
 .SourceSageAssets
 article_draft/*
 articles_draft
+draft
+qiita_error_*.json
