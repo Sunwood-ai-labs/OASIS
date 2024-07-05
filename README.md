@@ -38,7 +38,7 @@
 
 ～ 最適化された記事分類インテリジェントシステム ～
 
-OASISは、MarkdownファイルからWordPressへの投稿を自動化するPythonパッケージです。
+OASISは、MarkdownファイルからWordPressへの投稿を自動化するPythonパッケージです。v0.3.0からは、Qiitaへのクロス投稿機能も追加されました！
 
 ## 🎥 デモ
 
@@ -46,7 +46,7 @@ OASISは、MarkdownファイルからWordPressへの投稿を自動化するPyth
 
 ## 🚀 はじめに
 
-OASISを使用すると、MarkdownファイルからWordPressへの投稿を効率的に行うことができます。LLMによる自動カテゴリ・タグ提案やサムネイル画像の自動アップロードなど、便利な機能が満載です。
+OASISを使用すると、MarkdownファイルからWordPressとQiitaへの投稿を効率的に行うことができます。LLMによる自動カテゴリ・タグ提案やサムネイル画像の自動アップロードなど、便利な機能が満載です。
 
 ## インストール
 
@@ -62,10 +62,16 @@ pip install -U oasis-article
 oasis /path/to/your/folder
 ```
 
+WordPressとQiitaの両方に投稿する場合:
+
+```bash
+oasis /path/to/your/folder --qiita
+```
+
 例：
 
 ```bash
-oasis articles_draft/ELYZA-tasks-100-v2
+oasis articles_draft/ELYZA-tasks-100-v2 --qiita
 ```
 
 ### Pythonスクリプトから使用する場合:
@@ -74,7 +80,7 @@ oasis articles_draft/ELYZA-tasks-100-v2
 from oasis import OASIS
 
 oasis = OASIS()
-result = oasis.process_folder("/path/to/your/folder")
+result = oasis.process_folder("/path/to/your/folder", post_to_qiita=True)  # Qiitaへの投稿も行う場合
 print(result)
 ```
 
@@ -86,6 +92,14 @@ print(result)
 - `AUTH_PASS`: WordPressのパスワード
 - `BASE_URL`: WordPressサイトのURL
 - `LLM_MODEL`: 使用するLLMモデル（デフォルト: "gemini/gemini-1.5-pro-latest"）
+- `QIITA_TOKEN`: QiitaのAPIトークン（Qiitaへの投稿を行う場合に必要）
+
+## 🆕 新機能 (v0.3.0)
+
+- **Qiitaへのクロス投稿機能**: WordPressへの投稿と同時に、Qiitaにも記事を投稿できるようになりました。
+- **CLIオプションの追加**: `--qiita`オプションを使用してQiitaへの投稿を有効化できます。
+- **Qiita API統合**: Qiita APIとの通信を処理する専用のサービス層を追加しました。
+- **エラーハンドリングの改善**: APIエラーが発生した際にデバッグ情報を保存する機能を追加しました。
 
 ## 🤝 コントリビューション
 
@@ -98,4 +112,3 @@ OASISの開発にご協力いただける方は、GitHubリポジトリにアク
 ## 🙏 謝辞
 
 OASISの開発にあたり、多大な貢献をしていただいた方々に感謝申し上げます。
-
