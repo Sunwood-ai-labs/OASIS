@@ -1,13 +1,14 @@
 from .services.file_handler import FileHandler
 from .services.wordpress_api import WordPressAPI
 from .services.llm_api import LLMService
+from .services.qiita_api import QiitaAPI
 from .models.post import Post
 from .logger import logger
 from .config import Config
 from .exceptions import APIError
 
 class OASIS:
-    def __init__(self, base_url=None, auth_user=None, auth_pass=None, llm_model=None, max_retries=3):
+    def __init__(self, base_url=None, auth_user=None, auth_pass=None, llm_model=None, max_retries=3, qiita_token=None):
         self.config = Config()
         if base_url:
             self.config.BASE_URL = base_url
@@ -17,6 +18,8 @@ class OASIS:
             self.config.AUTH_PASS = auth_pass
         if llm_model:
             self.config.LLM_MODEL = llm_model
+        if qiita_token:
+            self.config.QIITA_TOKEN = qiita_token
         
         try:
             self.wp_api = WordPressAPI(self.config.BASE_URL, self.config.AUTH_USER, self.config.AUTH_PASS)
@@ -25,8 +28,11 @@ class OASIS:
             raise
 
         self.llm_service = LLMService(max_retries=max_retries)
+        
+        if self.config.QIITA_TOKEN:
+            self.qiita_api = QiitaAPI(self.config.QIITA_TOKEN)
 
-    def process_folder(self, folder_path: str):
+    def process_folder(self, folder_path: str, post_to_qiita: bool = False):
         try:
             file_handler = FileHandler(folder_path)
 
@@ -62,6 +68,11 @@ class OASIS:
                 logger.info("サムネイル画像のアップロードを開始")
                 self.wp_api.upload_thumbnail(post_id, thumbnail_path)
                 logger.info("サムネイル画像のアップロードが完了")
+
+            if post_to_qiita and self.config.QIITA_TOKEN:
+                logger.info("Qiitaへの投稿を開始")
+                qiita_post_id = self.qiita_api.create_post(post)
+                logger.info(f"Qiitaへの投稿が完了: ID {qiita_post_id}")
 
             logger.info("投稿処理が正常に完了しました")
             return post.to_dict()
