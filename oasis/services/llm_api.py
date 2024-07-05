@@ -5,6 +5,9 @@ from ..exceptions import APIError
 import json
 import re
 
+import litellm
+litellm.set_verbose=False # 👈 this is the 1-line change you need to make
+
 class LLMService:
     def __init__(self, max_retries=3):
         self.model = Config.LLM_MODEL
