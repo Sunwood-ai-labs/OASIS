@@ -110,11 +110,41 @@ class NoteAPI:
         pattern = re.compile(r'^\d+\. ')
         minusgt = re.compile(r'^[\->] ')
         blockquote = False
-        
+        code_block = []  # コードブロックの内容を保存するリスト
+
         for i, text in enumerate(tqdm(edit_text, desc="本文入力中")):
-            blockquote = self._process_text_line(driver, text, i, edit_text, url, pattern, minusgt, blockquote)
-        
+            active_element = driver.execute_script("return document.activeElement;")  # active_elementを取得
+
+            if "```" in text:
+                blockquote = self._toggle_blockquote(active_element, blockquote, code_block)
+                if not blockquote:
+                    self._input_code_block(driver, code_block)
+                    code_block = []
+            else:
+                if blockquote:
+                    code_block.append(text)
+                else:
+                    blockquote = self._process_text_line(driver, text, i, edit_text, url, pattern, minusgt, blockquote)
+
         logger.success("記事の本文入力が完了しました。")
+
+    def _input_code_block(self, driver: webdriver.Firefox, code_block: list):
+        """コードブロックの内容を一括して入力します。
+
+        Args:
+            driver (webdriver.Firefox): WebDriverインスタンス
+            code_block (list): コードブロックの内容を保存するリスト
+        """
+        if code_block:
+            code_text = '\n'.join(code_block)
+            active_element = driver.execute_script("return document.activeElement;")
+            active_element.send_keys(code_text)
+            sleep(0.5)
+            active_element.send_keys(Keys.ENTER)
+            # active_element.send_keys('```')
+            sleep(0.5)
+            active_element.send_keys(Keys.ENTER)
+
 
     def _process_text_line(self, driver: webdriver.Firefox, text: str, i: int, edit_text: list, url, pattern, minusgt, blockquote: bool):
         """1行のテキスト処理を行い、WebDriverに入力します。
@@ -246,12 +276,13 @@ class NoteAPI:
         except:
             return
 
-    def _toggle_blockquote(self, active_element, blockquote: bool) -> bool:
+    def _toggle_blockquote(self, active_element, blockquote: bool, code_block: list) -> bool:
         """引用符ブロックを開始/終了します。
 
         Args:
             active_element: アクティブな要素
             blockquote (bool): 現在の引用符ブロック状態
+            code_block (list): コードブロックの内容を保存するリスト
 
         Returns:
             bool: 反転した引用符ブロック状態
@@ -260,14 +291,12 @@ class NoteAPI:
             logger.debug(f">> コードブロック終了")
             sleep(0.5)
             active_element.send_keys(Keys.ENTER)
-            active_element.send_keys(Keys.ENTER)
             return False
         else:
             logger.debug(f">> コードブロック開始")
             sleep(0.5)
             active_element.send_keys(Keys.ENTER)
             active_element.send_keys('```')
-            active_element.send_keys(Keys.ENTER)
             return True
 
     def _input_unordered_list(self, active_element, text: str, i: int, edit_text: list, minusgt):
@@ -384,9 +413,9 @@ class NoteAPI:
         button = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[5]/div/div/div[1]/div/div[2]/button")))
         button.click()
         sleep(2)
-        # keyword_input = driver.execute_script("return document.activeElement;")
-        # keyword_input.send_keys(search_word)
-        # sleep(3)
+        keyword_input = driver.execute_script("return document.activeElement;")
+        keyword_input.send_keys("illust sample")
+        sleep(3)
         button = driver.find_element(By.XPATH, "/html/body/div[5]/div/div/div[1]/div/div[2]/button")
         button.click()
         sleep(3)
