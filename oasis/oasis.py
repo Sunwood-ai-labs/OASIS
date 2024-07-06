@@ -2,7 +2,8 @@ from .services.file_handler import FileHandler
 from .services.wordpress_api import WordPressAPI
 from .services.llm_api import LLMService
 from .services.qiita_api import QiitaAPI
-from .services.note_api import NoteAPI
+from .services.note_api_v1 import NoteAPI
+from .services.note_api_v2 import NoteAPIV2
 from .models.post import Post
 from .logger import logger
 from .config import Config
@@ -62,7 +63,7 @@ class OASIS:
 
         # Note API の初期化は、必要な情報が設定されている場合にのみ行う
         if self.config.NOTE_EMAIL and self.config.NOTE_PASSWORD and self.config.NOTE_USER_ID:
-            self.note_api = NoteAPI(
+            self.note_api = NoteAPIV2(
                 self.config.NOTE_EMAIL, 
                 self.config.NOTE_PASSWORD, 
                 self.config.NOTE_USER_ID,
@@ -154,7 +155,6 @@ class OASIS:
 
         if post_to_note and hasattr(self, 'note_api'):
             logger.info("Noteへの投稿を開始します...")
-            print(post.tags)
             tags = [tag["name"] for tag in post.tags]
             note_result = self.note_api.create_article(title, tags, text=markdown_content, headless=self.firefox_headless, post_setting=self.note_publish)
             logger.info(f"Noteへの投稿が完了しました: {note_result}")
