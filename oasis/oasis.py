@@ -95,14 +95,14 @@ class OASIS:
                 title, markdown_content, slug, suggestions['categories'], suggestions['tags']
             )
 
-            logger.info("WordPressへの投稿を開始")
-            post_id = self.wp_api.create_post(post)
-            logger.info(f"WordPressへの投稿が完了: ID {post_id}")
+            # logger.info("WordPressへの投稿を開始")
+            # post_id = self.wp_api.create_post(post)
+            # logger.info(f"WordPressへの投稿が完了: ID {post_id}")
 
-            if thumbnail_path:
-                logger.info("サムネイル画像のアップロードを開始")
-                self.wp_api.upload_thumbnail(post_id, thumbnail_path)
-                logger.info("サムネイル画像のアップロードが完了")
+            # if thumbnail_path:
+            #     logger.info("サムネイル画像のアップロードを開始")
+            #     self.wp_api.upload_thumbnail(post_id, thumbnail_path)
+            #     logger.info("サムネイル画像のアップロードが完了")
 
             if post_to_qiita and self.config.QIITA_TOKEN:
                 logger.info("Qiitaへの投稿を開始")
