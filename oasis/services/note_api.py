@@ -298,7 +298,6 @@ class NoteAPI:
         except:
             return
 
-
     def _input_url(self, driver, active_element, text: str, i: int, edit_text: list):
         """URLを入力し、マークダウンをHTMLに変換して挿入します。
 
@@ -309,15 +308,21 @@ class NoteAPI:
             i (int): 現在の行番号
             edit_text (list): 全体のテキスト行リスト
         """
-        # 正規表現を使用してURLとテキストを抽出
+        # ツイッターのblockquoteがあるか確認
+        blockquote_match = re.search(r'<blockquote class="twitter-tweet".*?<a href="(https://twitter\.com/.*?/status/\d+\?ref_src=twsrc%5Etfw)".*?</blockquote>', text, re.DOTALL)
+        
+        if blockquote_match:
+            # ステータスのURLを抽出
+            url = blockquote_match.group(1)
+            text = url  # textをURLで置き換え
+        
+        # 以下、既存のコード（変更なし）
         match = re.search(r'\[(.*?)\]\((.*?)\)', text)
         
         if match:
             link_text, url = match.groups()
-            # マークダウンをHTMLに変換
             html = markdown(text)
             
-            # BeautifulSoupを使用してHTMLを整形
             soup = BeautifulSoup(html, 'html.parser')
             formatted_html = soup.prettify()
             
@@ -329,7 +334,6 @@ class NoteAPI:
                 var html = arguments[1];
                 el.innerHTML += html;
                 
-                // カーソルを最後に移動
                 var range = document.createRange();
                 range.selectNodeContents(el);
                 range.collapse(false);
@@ -337,28 +341,24 @@ class NoteAPI:
                 selection.removeAllRanges();
                 selection.addRange(range);
                 
-                // ページの最下部にスクロール
                 el.scrollTop = el.scrollHeight;
             """
             driver.execute_script(script, active_element, formatted_html)
 
-            # 少し待機してスクロールが完了するのを待つ
             sleep(0.5)
         else:
-            # マッチしない場合は1文字ずつ入力
             for char in text:
                 active_element.send_keys(char)
-                sleep(0.1)  # 各文字の入力後に少し待機
+                sleep(0.1)
             active_element.send_keys(Keys.ENTER)
             return
 
-        # 次の行が特定のパターンで始まる場合、追加の改行を入力
         try:
             if edit_text[i + 1].startswith(('## ', '-', '>', '1. ')):
                 sleep(0.5)
                 active_element.send_keys(Keys.ENTER)
         except IndexError:
-            pass  # 最後の行の場合は何もしない
+            pass
         
 
     def _toggle_blockquote(self, active_element, blockquote: bool, code_block: list) -> bool:
