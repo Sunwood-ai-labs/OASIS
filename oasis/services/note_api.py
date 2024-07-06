@@ -328,7 +328,7 @@ class NoteAPI:
             logger.debug(f'pre_line: {pre_line}')
             logger.debug(f'next_line: {next_line}')
             
-            if pre_line.startswith(('-', '>', '1. ')):
+            if pre_line.startswith(('#### ', '### ', '## ', '-', '>', '1. ')):
                 sleep(0.5)
                 logger.debug('--- Keys.ENTER ---')
                 active_element.send_keys(Keys.ENTER)
