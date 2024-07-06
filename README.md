@@ -1,7 +1,7 @@
 <p align="center">
 <img src="https://huggingface.co/datasets/MakiAi/IconAssets/resolve/main/OASIS.png" width="100%">
 <br>
-<h1 align="center">OASIS</h1>
+<h1 align="center">O.A.S.I.S</h1>
 <h2 align="center">
   ～ Optimized Article Sorting Intelligent System ～
 <br>
@@ -39,6 +39,12 @@
 ～ 最適化された記事分類インテリジェントシステム ～
 
 OASISは、MarkdownファイルからWordPress, Qiita, Noteへの投稿を自動化するPythonパッケージです。
+
+## 🆕 更新情報
+
+- **v0.4.0**: Noteへのクロス投稿機能を追加しました。MarkdownファイルからNoteへの記事投稿を自動化し、複数のプラットフォームでコンテンツを簡単に共有できます。 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.4.0)をご覧ください。
+
+**過去のバージョン情報はこちら:** [Releases](https://github.com/Sunwood-ai-labs/OASIS/releases)
 
 ## 🎥 デモ
 
