@@ -333,7 +333,13 @@ class NoteAPI:
             edit_text (list): 全体のテキスト行リスト
         """
         sleep(0.1)
-        active_element.send_keys(text)
+        parts = re.split(r'(\*\*[^\*]*\*\*)', text)  # アスタリスクで囲まれた部分を分割
+        for part in parts:
+            if re.match(r'\*\*[^\*]*\*\*', part):  # アスタリスクで囲まれている場合
+                active_element.send_keys(part)
+                active_element.send_keys(Keys.SPACE)  # 半角スペースを追加
+            else:
+                active_element.send_keys(part)  
         sleep(0.1)
         active_element.send_keys(Keys.ENTER)
         try:
