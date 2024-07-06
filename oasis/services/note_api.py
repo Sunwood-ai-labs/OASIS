@@ -333,10 +333,13 @@ class NoteAPI:
             edit_text (list): 全体のテキスト行リスト
         """
         sleep(0.1)
+        text = re.sub(r'`([^`]*)`', r'**\1**', text)  # 修正箇所：バッククォートで囲まれた部分を太字に変換
+        text = text.replace("_", "-")  # 修正箇所：アンダーバーをハイフンに置換
         parts = re.split(r'(\*\*[^\*]*\*\*)', text)  # アスタリスクで囲まれた部分を分割
         for part in parts:
             if re.match(r'\*\*[^\*]*\*\*', part):  # アスタリスクで囲まれている場合
                 active_element.send_keys(part)
+                logger.debug(f"text part: {part}")  # ボタンのテキストをデバッグ出力
                 active_element.send_keys(Keys.SPACE)  # 半角スペースを追加
             else:
                 active_element.send_keys(part)  
