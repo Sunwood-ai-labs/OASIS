@@ -42,44 +42,41 @@ def main():
 
     args = parser.parse_args()
 
-    try:
-        oasis = OASIS(
-            base_url=args.wp_url or Config.BASE_URL,
-            auth_user=args.wp_user or Config.AUTH_USER,
-            auth_pass=args.wp_pass or Config.AUTH_PASS,
-            llm_model=args.llm_model,
-            max_retries=args.max_retries,
-            qiita_token=args.qiita_token or Config.QIITA_TOKEN,
-            note_email=args.note_email or Config.NOTE_EMAIL,
-            note_password=args.note_password or Config.NOTE_PASSWORD,
-            note_user_id=args.note_user_id or Config.NOTE_USER_ID,
-            note_publish=args.note_publish,
-            firefox_binary_path=args.firefox_binary_path,  # Firefox のパス
-            firefox_profile_path=args.firefox_profile_path,  # Firefox のプロファイルパス
-            firefox_headless=args.firefox_headless
-        )
-        logger.info(
-            f"使用中のLLMモデル: {oasis.config.LLM_MODEL}, 最大リトライ回数: {args.max_retries}"
-        )
+    oasis = OASIS(
+        base_url=args.wp_url or Config.BASE_URL,
+        auth_user=args.wp_user or Config.AUTH_USER,
+        auth_pass=args.wp_pass or Config.AUTH_PASS,
+        llm_model=args.llm_model,
+        max_retries=args.max_retries,
+        qiita_token=args.qiita_token or Config.QIITA_TOKEN,
+        note_email=args.note_email or Config.NOTE_EMAIL,
+        note_password=args.note_password or Config.NOTE_PASSWORD,
+        note_user_id=args.note_user_id or Config.NOTE_USER_ID,
+        note_publish=args.note_publish,
+        firefox_binary_path=args.firefox_binary_path,  # Firefox のパス
+        firefox_profile_path=args.firefox_profile_path,  # Firefox のプロファイルパス
+        firefox_headless=args.firefox_headless
+    )
+    logger.info(
+        f"使用中のLLMモデル: {oasis.config.LLM_MODEL}, 最大リトライ回数: {args.max_retries}"
+    )
 
-        result = oasis.process_folder(
-            args.folder_path, post_to_qiita=args.qiita, post_to_note=args.note, post_to_wp=args.wp
-        )
+    result = oasis.process_folder(
+        args.folder_path, post_to_qiita=args.qiita, post_to_note=args.note, post_to_wp=args.wp
+    )
 
-        logger.info("投稿が正常に作成されました！")
-        logger.info(f"タイトル: {result['title']}")
-        logger.info("-" * 80)
-        logger.info(f"スラグ: {result['slug']}")
-        logger.info(f">>> categories :")
-        for category in result['categories']:
-            logger.info(f"- {category['name']} (ID: {category['slug']})")
-        logger.info(">>> tags :")
-        for tag in result['tags']:
-            logger.info(f"- {tag['name']} (ID: {tag['slug']})")
+    logger.info("投稿が正常に作成されました！")
+    logger.info(f"タイトル: {result['title']}")
+    logger.info("-" * 80)
+    logger.info(f"スラグ: {result['slug']}")
+    logger.info(f">>> categories :")
+    for category in result['categories']:
+        logger.info(f"- {category['name']} (ID: {category['slug']})")
+    logger.info(">>> tags :")
+    for tag in result['tags']:
+        logger.info(f"- {tag['name']} (ID: {tag['slug']})")
 
-    except Exception as e:
-        logger.error(f"エラーが発生しました: {str(e)}")
-        sys.exit(1)
+
 
 if __name__ == '__main__':
     main()
