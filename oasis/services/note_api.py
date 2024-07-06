@@ -206,6 +206,9 @@ class NoteAPI:
             blockquote (bool): 引用符ブロック内かどうか
         """
         active_element = driver.execute_script("return document.activeElement;")
+        if text.startswith('#### '):
+            text = f"**{text}**".replace("#### ", "")
+
         if text.startswith('### '):
             self._input_heading(active_element, i, edit_text, text, 3)
         elif text.startswith('## '):
@@ -249,8 +252,8 @@ class NoteAPI:
         active_element.send_keys(Keys.SPACE)
         sleep(0.5)
         active_element.send_keys(text.replace(f'{"#" * level} ', ''))
-        # sleep(0.5)
-        # active_element.send_keys(Keys.ENTER)
+        sleep(0.5)
+        active_element.send_keys(Keys.ENTER)
 
     def _input_ordered_list(self, active_element, text: str, i: int, edit_text: list, pattern):
         """番号付きリストを入力します。
@@ -327,18 +330,15 @@ class NoteAPI:
             next_line = edit_text[i + 1]
             logger.debug(f'pre_line: {pre_line}')
             logger.debug(f'next_line: {next_line}')
+
+            logger.debug('--- Keys.ENTER ---')
+            active_element.send_keys(Keys.ENTER)
             
-            if pre_line.startswith(('#### ', '### ', '## ', '-', '>', '1. ')):
+            if pre_line.startswith(('-', '>', '1. ')) and next_line.startswith(('#### ', '### ', '## ')):
                 sleep(0.5)
                 logger.debug('--- Keys.ENTER ---')
                 active_element.send_keys(Keys.ENTER)
-                
-            if next_line.startswith(('#### ', '### ', '## ', '-', '>', '1. ')):
-                sleep(0.5)
-                logger.debug('--- Keys.ENTER ---')
-                active_element.send_keys(Keys.ENTER)
-            else:
-                return
+
         except:
             return
 
@@ -591,7 +591,7 @@ class NoteAPI:
         for tag in input_tag_list:
             sleep(0.5)
             logger.debug(f"tag : [{tag}]")
-            input.send_keys(tag.replace(" ", "").replace(".", "-"))
+            input.send_keys(tag.replace(" ", "").replace(".", ""))
             sleep(0.5)
             input = driver.execute_script("return document.activeElement;")
             input.send_keys(Keys.SPACE)
