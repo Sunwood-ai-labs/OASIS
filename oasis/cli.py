@@ -38,7 +38,7 @@ def main():
     # Firefox 設定
     parser.add_argument('--firefox-binary-path', type=str, help='Firefox の実行ファイルへのパス')
     parser.add_argument('--firefox-profile-path', type=str, help='使用する Firefox プロファイルへのパス')
-    parser.add_argument('--firefox-headless', action='store_true', type=str, help='Firefoxのヘッドレスモード')
+    parser.add_argument('--firefox-headless', action='store_true', help='Firefoxのヘッドレスモード')
 
     args = parser.parse_args()
 
