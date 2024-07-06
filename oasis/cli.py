@@ -15,8 +15,11 @@ def main():
     parser.add_argument(
         '--max-retries', type=int, default=3, help='LLMリクエストの最大リトライ回数'
     )
+    
+    # mode
     parser.add_argument('--qiita', action='store_true', help='Qiitaにも投稿する')
     parser.add_argument('--note', action='store_true', help='Noteにも投稿する')
+    parser.add_argument('--wp', action='store_true', help='WordPressにも投稿する')
 
     # wp
     parser.add_argument('--wp-user', type=str, help='WordPressのユーザー名')
@@ -32,6 +35,11 @@ def main():
     parser.add_argument('--note-user-id', type=str, help='NoteのユーザーID')
     parser.add_argument('--note-publish', action='store_true', help='公開するかどうか')
 
+    # Firefox 設定
+    parser.add_argument('--firefox-binary-path', type=str, help='Firefox の実行ファイルへのパス')
+    parser.add_argument('--firefox-profile-path', type=str, help='使用する Firefox プロファイルへのパス')
+    parser.add_argument('--firefox-headless', action='store_true', help='Firefoxのヘッドレスモード')
+
     args = parser.parse_args()
 
     try:
@@ -46,13 +54,16 @@ def main():
             note_password=args.note_password or Config.NOTE_PASSWORD,
             note_user_id=args.note_user_id or Config.NOTE_USER_ID,
             note_publish=args.note_publish,
+            firefox_binary_path=args.firefox_binary_path,  # Firefox のパス
+            firefox_profile_path=args.firefox_profile_path,  # Firefox のプロファイルパス
+            firefox_headless=args.firefox_headless
         )
         logger.info(
             f"使用中のLLMモデル: {oasis.config.LLM_MODEL}, 最大リトライ回数: {args.max_retries}"
         )
 
         result = oasis.process_folder(
-            args.folder_path, post_to_qiita=args.qiita, post_to_note=args.note
+            args.folder_path, post_to_qiita=args.qiita, post_to_note=args.note, post_to_wp=args.wp
         )
 
         logger.info("投稿が正常に作成されました！")

@@ -30,15 +30,15 @@ class Config:
                 "WordPress の認証情報が不足しています。AUTH_USER, AUTH_PASS, BASE_URL を設定してください。"
             )
         else:
-            logger.info(f"WordPress AUTH_USER: {cls.AUTH_USER}")
-            logger.info(f"WordPress BASE_URL: {cls.BASE_URL}")  # パスワードは表示しない
+            logger.info(f"WordPress AUTH_USER: {cls.AUTH_USER[:3]}")
+            logger.info(f"WordPress BASE_URL: {cls.BASE_URL[:3]}")  # パスワードは表示しない
 
         if not cls.GEMINI_API_KEY:
             raise ValueError(
                 "Gemini API キーが設定されていません。GEMINI_API_KEY を設定してください。"
             )
         else:
-            logger.info(f"Gemini API Key: {cls.GEMINI_API_KEY}") 
+            logger.info(f"Gemini API Key: {cls.GEMINI_API_KEY[:3]}") 
 
         # Qiita トークンは必須ではないが、設定されていない場合は警告を出す
         if not cls.QIITA_TOKEN:
@@ -46,7 +46,7 @@ class Config:
                 "Qiita API トークンが設定されていません。Qiita への投稿機能は無効です。"
             )
         else:
-            logger.info(f"Qiita Token: {cls.QIITA_TOKEN}") 
+            logger.info(f"Qiita Token: {cls.QIITA_TOKEN[:3]}") 
         
         # Note ログイン情報は必須ではないが、設定されていない場合は警告を出す
         if not cls.NOTE_EMAIL or not cls.NOTE_PASSWORD or not cls.NOTE_USER_ID:
@@ -54,8 +54,8 @@ class Config:
                 "Note ログイン情報が設定されていません。Note への投稿機能は無効です。"
             )
         else:
-            logger.info(f"Note Email: {cls.NOTE_EMAIL}")
-            logger.info(f"Note User ID: {cls.NOTE_USER_ID}") # パスワードは表示しない
+            logger.info(f"Note Email: {cls.NOTE_EMAIL[:3]}")
+            logger.info(f"Note User ID: {cls.NOTE_USER_ID[:3]}") # パスワードは表示しない
 
     @classmethod
     def setup(cls):
