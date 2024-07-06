@@ -5,6 +5,17 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.options import Options
 from janome.tokenizer import Tokenizer
+
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service
+from webdriver_manager.firefox import GeckoDriverManager
+import os
+
+from markdown import markdown
+from bs4 import BeautifulSoup
+from selenium.webdriver.common.keys import Keys
+
 from time import sleep
 from random import randint
 import builtins
@@ -25,20 +36,45 @@ class NoteAPI:
     def __str__(self):
         return f"Email : {self.email} / User ID : {self.user_id}"
 
-    def _init_driver(self, headless: bool = True):
+    def _init_driver(self, headless: bool = False, profile_path: str = None):
         """WebDriverを初期化して返します。
 
         Args:
-            headless (bool, optional): ヘッドレスモードで起動するかどうか. Defaults to True.
+            headless (bool, optional): ヘッドレスモードで起動するかどうか. Defaults to False.
+            profile_path (str, optional): 使用するFirefoxプロファイルのパス. Defaults to None.
 
         Returns:
             webdriver.Firefox: 初期化されたWebDriverインスタンス
         """
         logger.info("WebDriverを初期化しています...")
+        
         options = Options()
         if headless:
-            options.add_argument("--headless=new")
-        driver = webdriver.Firefox(options=options)
+            options.add_argument("--headless")
+        
+        # ユーザーエージェントを正しく設定
+        user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        options.set_preference("general.useragent.override", user_agent)
+    
+        # Firefoxのインストール場所を指定（必要に応じてパスを調整してください）
+        firefox_binary = r"C:\Program Files\Mozilla Firefox\firefox.exe"
+        if(firefox_binary):
+            options.binary_location = firefox_binary
+        
+        profile_path = r"C:\Users\makim\AppData\Roaming\Mozilla\Firefox\Profiles\c8ur3g2w.default-release"
+        
+        # プロファイルを設定
+        if profile_path:
+            options.add_argument(f'-profile {profile_path}')
+        
+        # GeckoDriverManagerを使用してドライバーを自動的にダウンロードし管理
+        service = Service(GeckoDriverManager().install())
+        
+        driver = webdriver.Firefox(service=service, options=options)
+        
+        # ウィンドウサイズを設定
+        driver.set_window_size(1920, 1080)
+        
         logger.success("WebDriverの初期化が完了しました。")
         return driver
 
@@ -48,21 +84,28 @@ class NoteAPI:
         Args:
             driver (webdriver.Firefox): WebDriverインスタンス
         """
-        logger.info("Noteにログインしています...")
-        driver.get('https://note.com/login?redirectPath=%2Fnotes%2Fnew')
+        try:
+            logger.info("Noteにログインしています...")
+            driver.get('https://note.com/login?redirectPath=%2Fnotes%2Fnew')
 
-        wait = WebDriverWait(driver, 10)
+            wait = WebDriverWait(driver, 10)
 
-        sleep(5)
-        email_input = wait.until(EC.presence_of_element_located((By.ID, 'email')))
-        email_input.send_keys(self.email)
-        sleep(0.5)
-        password_input = wait.until(EC.presence_of_element_located((By.ID, 'password')))
-        password_input.send_keys(self.password)
-        sleep(0.5)
-        login_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".o-login__button button")))
-        login_button.click()
-        sleep(2)
+            sleep(5)
+            email_input = wait.until(EC.presence_of_element_located((By.ID, 'email')))
+            email_input.send_keys(self.email)
+            sleep(0.5)
+            password_input = wait.until(EC.presence_of_element_located((By.ID, 'password')))
+            password_input.send_keys(self.password)
+            sleep(0.5)
+            login_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".o-login__button button")))
+            login_button.click()
+            sleep(2)
+            
+        except:
+            driver.get('https://editor.note.com/new')
+            wait = WebDriverWait(driver, 10)
+            sleep(2)
+            
         logger.success("Noteへのログインが完了しました。")
 
     def _input_title(self, driver: webdriver.Firefox, title: str):
@@ -171,7 +214,7 @@ class NoteAPI:
         elif text == '':
             self._input_empty_line(active_element, i, edit_text, blockquote)
         elif url.search(text):
-            self._input_url(active_element, text, i, edit_text)
+            self._input_url(driver, active_element, text, i, edit_text)
         elif "```" in text:
             blockquote = self._toggle_blockquote(active_element, blockquote)
         elif minusgt.search(text):
@@ -255,26 +298,68 @@ class NoteAPI:
         except:
             return
 
-    def _input_url(self, active_element, text: str, i: int, edit_text: list):
-        """URLを入力します。
+
+    def _input_url(self, driver, active_element, text: str, i: int, edit_text: list):
+        """URLを入力し、マークダウンをHTMLに変換して挿入します。
 
         Args:
+            driver: WebDriverインスタンス
             active_element: アクティブな要素
-            text (str): URLテキスト
+            text (str): マークダウンテキスト
             i (int): 現在の行番号
             edit_text (list): 全体のテキスト行リスト
         """
-        for char in text:
-            sleep(0.1)
-            active_element.send_keys(char)
-        sleep(0.1)
-        active_element.send_keys(Keys.ENTER)
+        # 正規表現を使用してURLとテキストを抽出
+        match = re.search(r'\[(.*?)\]\((.*?)\)', text)
+        
+        if match:
+            link_text, url = match.groups()
+            # マークダウンをHTMLに変換
+            html = markdown(text)
+            
+            # BeautifulSoupを使用してHTMLを整形
+            soup = BeautifulSoup(html, 'html.parser')
+            formatted_html = soup.prettify()
+            
+            logger.debug(f"text: {text}")
+            logger.debug(f"html: {formatted_html}")
+            
+            script = """
+                var el = arguments[0];
+                var html = arguments[1];
+                el.innerHTML += html;
+                
+                // カーソルを最後に移動
+                var range = document.createRange();
+                range.selectNodeContents(el);
+                range.collapse(false);
+                var selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+                
+                // ページの最下部にスクロール
+                el.scrollTop = el.scrollHeight;
+            """
+            driver.execute_script(script, active_element, formatted_html)
+
+            # 少し待機してスクロールが完了するのを待つ
+            sleep(0.5)
+        else:
+            # マッチしない場合は1文字ずつ入力
+            for char in text:
+                active_element.send_keys(char)
+                sleep(0.1)  # 各文字の入力後に少し待機
+            active_element.send_keys(Keys.ENTER)
+            return
+
+        # 次の行が特定のパターンで始まる場合、追加の改行を入力
         try:
             if edit_text[i + 1].startswith(('## ', '-', '>', '1. ')):
                 sleep(0.5)
                 active_element.send_keys(Keys.ENTER)
-        except:
-            return
+        except IndexError:
+            pass  # 最後の行の場合は何もしない
+        
 
     def _toggle_blockquote(self, active_element, blockquote: bool, code_block: list) -> bool:
         """引用符ブロックを開始/終了します。
