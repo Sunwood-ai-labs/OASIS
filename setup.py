@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="oasis-article",
-    version="0.3.1",
+    version="0.4.0",
     author="Sunwood-ai-labs",
     author_email="sunwood.ai.labs@gmail.com",
     description="WordPressへの投稿を自動化するパッケージ",
@@ -36,6 +36,8 @@ setup(
         "loguru",
         "click",
         "art",
+        'selenium>=4.12.0',
+        'janome>=0.5.0'
     ],
     entry_points={
         "console_scripts": [

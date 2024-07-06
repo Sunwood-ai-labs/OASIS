@@ -6,17 +6,32 @@ from .logger import logger
 from art import *
 
 def main():
-    tprint(">>  OASIS  <<",font="rnd-large")
-    parser = argparse.ArgumentParser(description="指定されたフォルダを処理し、WordPressとQiitaの投稿を作成します。")
+    tprint(">>  OASIS  <<", font="rnd-large")
+    parser = argparse.ArgumentParser(
+        description="指定されたフォルダを処理し、WordPress, Qiita, Noteへの投稿を作成します。"
+    )
     parser.add_argument('folder_path', type=str, help='処理するフォルダのパス')
     parser.add_argument('--llm-model', type=str, help='使用するLLMモデル')
-    parser.add_argument('--max-retries', type=int, default=3, help='LLMリクエストの最大リトライ回数')
+    parser.add_argument(
+        '--max-retries', type=int, default=3, help='LLMリクエストの最大リトライ回数'
+    )
     parser.add_argument('--qiita', action='store_true', help='Qiitaにも投稿する')
+    parser.add_argument('--note', action='store_true', help='Noteにも投稿する')
+
+    # wp
     parser.add_argument('--wp-user', type=str, help='WordPressのユーザー名')
     parser.add_argument('--wp-pass', type=str, help='WordPressのパスワード')
     parser.add_argument('--wp-url', type=str, help='WordPressのURL')
+
+    # qiita
     parser.add_argument('--qiita-token', type=str, help='QiitaのAPIトークン')
-    
+
+    # note
+    parser.add_argument('--note-email', type=str, help='Noteのメールアドレス')
+    parser.add_argument('--note-password', type=str, help='Noteのパスワード')
+    parser.add_argument('--note-user-id', type=str, help='NoteのユーザーID')
+    parser.add_argument('--note-publish', action='store_true', help='公開するかどうか')
+
     args = parser.parse_args()
 
     try:
@@ -26,15 +41,23 @@ def main():
             auth_pass=args.wp_pass or Config.AUTH_PASS,
             llm_model=args.llm_model,
             max_retries=args.max_retries,
-            qiita_token=args.qiita_token or Config.QIITA_TOKEN
+            qiita_token=args.qiita_token or Config.QIITA_TOKEN,
+            note_email=args.note_email or Config.NOTE_EMAIL,
+            note_password=args.note_password or Config.NOTE_PASSWORD,
+            note_user_id=args.note_user_id or Config.NOTE_USER_ID,
+            note_publish=args.note_publish,
         )
-        logger.info(f"使用中のLLMモデル: {oasis.config.LLM_MODEL}, 最大リトライ回数: {args.max_retries}")
+        logger.info(
+            f"使用中のLLMモデル: {oasis.config.LLM_MODEL}, 最大リトライ回数: {args.max_retries}"
+        )
 
-        result = oasis.process_folder(args.folder_path, post_to_qiita=args.qiita)
+        result = oasis.process_folder(
+            args.folder_path, post_to_qiita=args.qiita, post_to_note=args.note
+        )
 
         logger.info("投稿が正常に作成されました！")
         logger.info(f"タイトル: {result['title']}")
-        logger.info("-"*80)
+        logger.info("-" * 80)
         logger.info(f"スラグ: {result['slug']}")
         logger.info(f">>> categories :")
         for category in result['categories']:
