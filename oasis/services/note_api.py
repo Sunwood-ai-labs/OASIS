@@ -24,60 +24,62 @@ from loguru import logger
 from tqdm import tqdm
 
 class NoteAPI:
-
-    def __init__(self, email: str, password: str, user_id: str):
+    def __init__(self, email: str, password: str, user_id: str, firefox_binary_path=None, firefox_profile_path=None):
         '''
         Noteアカウントのメールアドレスとパスワードを設定します
         '''
         self.email = email
         self.password = password
         self.user_id = user_id
+        self.firefox_binary_path = firefox_binary_path
+        self.firefox_profile_path = firefox_profile_path
 
     def __str__(self):
         return f"Email : {self.email} / User ID : {self.user_id}"
 
-    def _init_driver(self, headless: bool = False, profile_path: str = None):
+    def _init_driver(self, headless: bool = False):
         """WebDriverを初期化して返します。
 
         Args:
             headless (bool, optional): ヘッドレスモードで起動するかどうか. Defaults to False.
-            profile_path (str, optional): 使用するFirefoxプロファイルのパス. Defaults to None.
 
         Returns:
             webdriver.Firefox: 初期化されたWebDriverインスタンス
         """
         logger.info("WebDriverを初期化しています...")
-        
+
         options = Options()
         if headless:
             options.add_argument("--headless")
-        
+
         # ユーザーエージェントを正しく設定
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         options.set_preference("general.useragent.override", user_agent)
-    
-        # Firefoxのインストール場所を指定（必要に応じてパスを調整してください）
-        firefox_binary = r"C:\Program Files\Mozilla Firefox\firefox.exe"
-        if(firefox_binary):
+
+        # インスタンス変数から Firefox のパスを取得、設定されていない場合は環境変数から取得
+        firefox_binary = self.firefox_binary_path or os.getenv('FIREFOX_BINARY_PATH')
+        if firefox_binary:
             options.binary_location = firefox_binary
-        
-        profile_path = r"C:\Users\makim\AppData\Roaming\Mozilla\Firefox\Profiles\c8ur3g2w.default-release"
-        
-        # プロファイルを設定
+
+        # インスタンス変数から Firefox のプロファイルパスを取得、設定されていない場合は環境変数から取得
+        profile_path = self.firefox_profile_path or os.getenv('FIREFOX_PROFILE_PATH')
         if profile_path:
             options.add_argument(f'-profile {profile_path}')
-        
+
+        logger.debug(f"profile_path : {profile_path}")
+        logger.debug(f"firefox_binary : {firefox_binary}")
+
         # GeckoDriverManagerを使用してドライバーを自動的にダウンロードし管理
         service = Service(GeckoDriverManager().install())
-        
+
         driver = webdriver.Firefox(service=service, options=options)
-        
+
         # ウィンドウサイズを設定
         driver.set_window_size(1920, 1080)
-        
+
         logger.success("WebDriverの初期化が完了しました。")
         return driver
-
+    
     def _login(self, driver: webdriver.Firefox):
         """Noteにログインします。
 
@@ -102,6 +104,7 @@ class NoteAPI:
             sleep(2)
             
         except:
+            logger.info("Noteに自動ログインしました...")
             driver.get('https://editor.note.com/new')
             wait = WebDriverWait(driver, 10)
             sleep(2)
@@ -204,9 +207,9 @@ class NoteAPI:
         """
         active_element = driver.execute_script("return document.activeElement;")
         if text.startswith('### '):
-            self._input_heading(active_element, text, 3)
+            self._input_heading(active_element, i, edit_text, text, 3)
         elif text.startswith('## '):
-            self._input_heading(active_element, text, 2)
+            self._input_heading(active_element, i, edit_text, text, 2)
         elif pattern.search(text):
             self._input_ordered_list(active_element, text, i, edit_text, pattern)
         elif text == "---":
@@ -224,7 +227,7 @@ class NoteAPI:
 
         return blockquote
 
-    def _input_heading(self, active_element, text: str, level: int):
+    def _input_heading(self, active_element, i, edit_text, text: str, level: int):
         """見出しを入力します。
 
         Args:
@@ -232,16 +235,22 @@ class NoteAPI:
             text (str): 見出しテキスト
             level (int): 見出しレベル (2 or 3)
         """
-        sleep(0.5)
-        active_element.send_keys(Keys.ENTER)
+        
+        front_line = edit_text[i - 1]
+        logger.debug(f'front_line: {front_line}')
+        if front_line.startswith(('## ', '-', '>', '1. ')):
+            sleep(0.5)
+            
+        # sleep(0.5)
+        # active_element.send_keys(Keys.ENTER)
         sleep(0.5)
         active_element.send_keys(f'{"#" * level}')
         sleep(0.5)
         active_element.send_keys(Keys.SPACE)
         sleep(0.5)
         active_element.send_keys(text.replace(f'{"#" * level} ', ''))
-        sleep(0.5)
-        active_element.send_keys(Keys.ENTER)
+        # sleep(0.5)
+        # active_element.send_keys(Keys.ENTER)
 
     def _input_ordered_list(self, active_element, text: str, i: int, edit_text: list, pattern):
         """番号付きリストを入力します。
@@ -256,15 +265,38 @@ class NoteAPI:
         number = text[0]
         if pattern.search(edit_text[i - 1]):
             sleep(0.5)
-            active_element.send_keys(text.replace(f'{number}. ', ''))
+            logger.debug(f'order text: {text}')
+            self._input_text_with_format(active_element, text.replace(f'{number}. ', ''))
         else:
+            logger.debug(f'order number: {number}')
+            logger.debug(f'order text: {text}')
             sleep(0.5)
             active_element.send_keys(f'{number}.')
             sleep(0.5)
             active_element.send_keys(Keys.SPACE)
             sleep(0.5)
-            active_element.send_keys(text.replace(f'{number}. ', ''))
+            self._input_text_with_format(active_element, text.replace(f'{number}. ', ''))
         self._insert_line_break_if_needed(active_element, i, edit_text, pattern)
+
+
+    def _input_text_with_format(self, active_element, text: str):
+        """太字、アンダーバーの置換、テキスト入力処理を行います。
+
+        Args:
+            active_element: アクティブな要素
+            text (str): 入力するテキスト
+        """
+        text = re.sub(r'`([^`]*)`', r'**\1**', text)
+        text = text.replace("_", "-")
+        parts = re.split(r'(\*\*[^\*]*\*\*)', text)
+        for part in parts:
+            if re.match(r'\*\*[^\*]*\*\*', part):
+                active_element.send_keys(part)  # アスタリスクを取り除いて入力
+                logger.debug(f"text part: {part}")
+                active_element.send_keys(Keys.SPACE)
+            else:
+                logger.debug(f"plane text: {part}")
+                active_element.send_keys(part)
 
     def _input_horizontal_rule(self, active_element):
         """水平線を挿入します。
@@ -290,8 +322,20 @@ class NoteAPI:
             sleep(0.5)
             active_element.send_keys(' ')
         try:
-            if edit_text[i + 1].startswith(('## ', '-', '>', '1. ')):
+            
+            pre_line = edit_text[i - 1]
+            next_line = edit_text[i + 1]
+            logger.debug(f'pre_line: {pre_line}')
+            logger.debug(f'next_line: {next_line}')
+            
+            if pre_line.startswith(('-', '>', '1. ')):
                 sleep(0.5)
+                logger.debug('--- Keys.ENTER ---')
+                active_element.send_keys(Keys.ENTER)
+                
+            if next_line.startswith(('#### ', '### ', '## ', '-', '>', '1. ')):
+                sleep(0.5)
+                logger.debug('--- Keys.ENTER ---')
                 active_element.send_keys(Keys.ENTER)
             else:
                 return
@@ -346,19 +390,13 @@ class NoteAPI:
             driver.execute_script(script, active_element, formatted_html)
 
             sleep(0.5)
+            return
         else:
             for char in text:
                 active_element.send_keys(char)
                 sleep(0.1)
             active_element.send_keys(Keys.ENTER)
             return
-
-        try:
-            if edit_text[i + 1].startswith(('## ', '-', '>', '1. ')):
-                sleep(0.5)
-                active_element.send_keys(Keys.ENTER)
-        except IndexError:
-            pass
         
 
     def _toggle_blockquote(self, active_element, blockquote: bool, code_block: list) -> bool:
@@ -398,14 +436,14 @@ class NoteAPI:
         markspace = f"{mark} "
         if edit_text[i - 1].startswith(markspace):
             sleep(0.5)
-            active_element.send_keys(text.replace(mark, ''))
+            self._input_text_with_format(active_element, text.replace(mark, ''))
         else:
             sleep(0.5)
             active_element.send_keys(mark)
             sleep(0.5)
             active_element.send_keys(Keys.SPACE)
             sleep(0.5)
-            active_element.send_keys(text.replace(mark, ''))
+            self._input_text_with_format(active_element, text.replace(mark, ''))
         self._insert_line_break_if_needed(active_element, i, edit_text, minusgt)
 
     def _input_plain_text(self, active_element, text: str, i: int, edit_text: list):
@@ -418,18 +456,10 @@ class NoteAPI:
             edit_text (list): 全体のテキスト行リスト
         """
         sleep(0.1)
-        text = re.sub(r'`([^`]*)`', r'**\1**', text)  # 修正箇所：バッククォートで囲まれた部分を太字に変換
-        text = text.replace("_", "-")  # 修正箇所：アンダーバーをハイフンに置換
-        parts = re.split(r'(\*\*[^\*]*\*\*)', text)  # アスタリスクで囲まれた部分を分割
-        for part in parts:
-            if re.match(r'\*\*[^\*]*\*\*', part):  # アスタリスクで囲まれている場合
-                active_element.send_keys(part)
-                logger.debug(f"text part: {part}")  # ボタンのテキストをデバッグ出力
-                active_element.send_keys(Keys.SPACE)  # 半角スペースを追加
-            else:
-                active_element.send_keys(part)  
+        self._input_text_with_format(active_element, text)
         sleep(0.1)
         active_element.send_keys(Keys.ENTER)
+        
         try:
             if edit_text[i + 1].startswith(('## ', '-', '>', '1. ')):
                 sleep(0.5)
@@ -450,7 +480,9 @@ class NoteAPI:
             if pattern.search(edit_text[i + 1]):
                 sleep(0.5)
                 active_element.send_keys(Keys.ENTER)
+                logger.debug(f"箇条書き中...")
             else:
+                logger.debug(f"箇条書き終了")
                 sleep(0.5)
                 active_element.send_keys(Keys.ENTER)
                 sleep(0.5)
