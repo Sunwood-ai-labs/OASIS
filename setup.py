@@ -39,7 +39,8 @@ setup(
         'selenium>=4.12.0',
         'janome>=0.5.0',
         'markdown',
-        'beautifulsoup4'
+        'beautifulsoup4',
+        'webdriver_manager'
     ],
     entry_points={
         "console_scripts": [
