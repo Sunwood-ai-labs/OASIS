@@ -160,6 +160,8 @@ class NoteAPI:
             level (int): 見出しレベル (2 or 3)
         """
         sleep(0.5)
+        active_element.send_keys(Keys.ENTER)
+        sleep(0.5)
         active_element.send_keys(f'{"#" * level}')
         sleep(0.5)
         active_element.send_keys(Keys.SPACE)
@@ -263,7 +265,9 @@ class NoteAPI:
         else:
             logger.debug(f">> コードブロック開始")
             sleep(0.5)
+            active_element.send_keys(Keys.ENTER)
             active_element.send_keys('```')
+            active_element.send_keys(Keys.ENTER)
             return True
 
     def _input_unordered_list(self, active_element, text: str, i: int, edit_text: list, minusgt):
@@ -366,23 +370,23 @@ class NoteAPI:
     def _set_thumbnail(self, driver: webdriver.Firefox, wait: WebDriverWait, search_word: str, image_index: int or str):
         """サムネイル画像を設定します。"""
         logger.info("サムネイル画像を設定しています...")
-        sleep(0.5)
+        sleep(2)
         button = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[3]/div[1]/div[2]/div[1]/main/div[1]/button")))
         logger.debug(f"button: {button}")  # ボタンのテキストをデバッグ出力
         button.click()
 
-        sleep(0.5)
+        sleep(2)
         button = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[3]/div[1]/div[2]/div[1]/main/div[1]/div/div[2]/button")))
         logger.debug(f"button: {button}")  # ボタンのテキストをデバッグ出力
         button.click()
 
-        sleep(1)
+        sleep(2)
         button = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[5]/div/div/div[1]/div/div[2]/button")))
         button.click()
-        sleep(0.5)
-        keyword_input = driver.execute_script("return document.activeElement;")
-        keyword_input.send_keys(search_word)
         sleep(2)
+        # keyword_input = driver.execute_script("return document.activeElement;")
+        # keyword_input.send_keys(search_word)
+        # sleep(3)
         button = driver.find_element(By.XPATH, "/html/body/div[5]/div/div/div[1]/div/div[2]/button")
         button.click()
         sleep(3)
@@ -397,10 +401,10 @@ class NoteAPI:
             img_elements[index].click()
             button = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[5]/div/div/div[2]/div/div[2]/div/div[5]/button[2]")))
             button.click()
-            sleep(2)
+            sleep(5)
             button = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[4]/div/div/div[3]/button[2]")))
             button.click()
-            sleep(10)
+            sleep(20)
         logger.success("サムネイル画像の設定が完了しました。")
 
     def _select_image_index(self, image_index: int or str, img_elements: list) -> int:
@@ -431,7 +435,8 @@ class NoteAPI:
         input = driver.execute_script("return document.activeElement;")
         for tag in input_tag_list:
             sleep(0.5)
-            input.send_keys(tag)
+            logger.debug(f"tag : [{tag}]")
+            input.send_keys(tag.replace(" ", "").replace(".", "-"))
             sleep(0.5)
             input = driver.execute_script("return document.activeElement;")
             input.send_keys(Keys.SPACE)
@@ -508,7 +513,7 @@ class NoteAPI:
         search_word = self._extract_search_word(title)
         
         wait = WebDriverWait(driver, 10)
-        # self._set_thumbnail(driver, wait, search_word, image_index)
+        self._set_thumbnail(driver, wait, search_word, image_index)
 
         if post_setting:
             res = self._publish_article(driver, wait, input_tag_list )
