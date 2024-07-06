@@ -14,7 +14,8 @@ except:
     
 class WordPressAPI:
     def __init__(self, base_url, auth_user, auth_pass):
-        self.base_url = base_url.rstrip('/')  # 末尾のスラッシュを削除
+        if(base_url):
+            self.base_url = base_url.rstrip('/')  # 末尾のスラッシュを削除
         self.auth = (auth_user, auth_pass)
         self.api_url = f"{self.base_url}/wp-json/wp/v2"
  
