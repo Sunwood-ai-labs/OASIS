@@ -26,6 +26,8 @@ import mistune
 
 from janome.tokenizer import Tokenizer
 
+from .markdown_processor import MarkdownProcessor
+
 class NoteAPIV2:
     def __init__(
         self,
@@ -178,7 +180,10 @@ class NoteAPIV2:
         logger.info("記事の内容を入力しています...")
         
         # マークダウンをHTMLに変換（コードブロックを適切に処理）
-        html_content = convert_markdown_to_html(content)
+        # html_content = convert_markdown_to_html(content)
+
+        processor = MarkdownProcessor()
+        html_content = processor.convert_markdown_to_html(content)
 
         # BeautifulSoupを使ってHTMLをパースする（必要に応じて）
         soup = BeautifulSoup(html_content, "html.parser")
