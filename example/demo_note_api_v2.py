@@ -19,7 +19,7 @@ USER_ID = os.getenv('USER_ID')
 # スクリプト内で直接定義する値
 TITLE = 'Jetson'
 CONTENT_PATH = 'content.md'
-CONTENT_PATH = r'draft\jet03\README.md'
+CONTENT_PATH = r'draft\ARC01\ARC01.md'
 TAG_LIST = ['sample_tag']
 IMAGE_INDEX = 0  # 変数名を修正
 POST_SETTING = True
