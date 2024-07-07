@@ -3,6 +3,7 @@ import os
 import json
 from dotenv import load_dotenv
 from datetime import datetime
+from art import *
 
 try:
     from ..logger import logger
@@ -14,15 +15,18 @@ except:
     from exceptions import APIError
 
 class QiitaAPI:
-    def __init__(self, token):
+    def __init__(self, token, post_private=True, post_tweet=False):
         self.token = token
         self.base_url = "https://qiita.com/api/v2"
         self.headers = {
             "Authorization": f"Bearer {self.token}",
             "Content-Type": "application/json"
         }
+        self.post_private = post_private
+        self.post_tweet = post_tweet
 
     def create_post(self, post):
+        tprint('>>  QiitaAPI')
         try:
             url = f"{self.base_url}/items"
             
@@ -34,8 +38,8 @@ class QiitaAPI:
                 "title": post.title[:100],  # タイトルを100文字に制限
                 "body": post.content[:100000],  # 本文を100000文字に制限
                 "tags": tags,
-                "private": False,
-                "tweet": False
+                "private": self.post_private,
+                "tweet": self.post_tweet
             }
             
             response = requests.post(url, json=payload, headers=self.headers)
