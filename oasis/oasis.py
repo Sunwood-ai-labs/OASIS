@@ -27,7 +27,8 @@ class OASIS:
         note_publish=None,
         firefox_binary_path=None,  # Firefox のパスを追加
         firefox_profile_path=None,  # Firefox のプロファイルパスを追加
-        firefox_headless=False
+        firefox_headless=False,
+        note_api_ver = "v2",
     ):
         self.config = Config()
         if base_url:
@@ -63,14 +64,23 @@ class OASIS:
 
         # Note API の初期化は、必要な情報が設定されている場合にのみ行う
         if self.config.NOTE_EMAIL and self.config.NOTE_PASSWORD and self.config.NOTE_USER_ID:
-            self.note_api = NoteAPIV2(
-                self.config.NOTE_EMAIL, 
-                self.config.NOTE_PASSWORD, 
-                self.config.NOTE_USER_ID,
-                firefox_binary_path=firefox_binary_path,
-                firefox_profile_path=firefox_profile_path
-            )
-        
+
+            if(note_api_ver == "v2"):
+                self.note_api = NoteAPIV2(
+                    self.config.NOTE_EMAIL, 
+                    self.config.NOTE_PASSWORD, 
+                    self.config.NOTE_USER_ID,
+                    firefox_binary_path=firefox_binary_path,
+                    firefox_profile_path=firefox_profile_path
+                )
+            else:
+                self.note_api = NoteAPI(
+                    self.config.NOTE_EMAIL, 
+                    self.config.NOTE_PASSWORD, 
+                    self.config.NOTE_USER_ID,
+                    firefox_binary_path=firefox_binary_path,
+                    firefox_profile_path=firefox_profile_path
+                )
         self.note_publish = note_publish
         self.firefox_headless = firefox_headless
 

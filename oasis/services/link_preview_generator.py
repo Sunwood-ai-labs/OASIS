@@ -1,6 +1,7 @@
 
 import requests
 from bs4 import BeautifulSoup
+import hashlib
 
 def get_site_metadata(url):
     try:
@@ -49,3 +50,22 @@ def create_card_html(metadata):
 def generate_site_card(url):
     metadata = get_site_metadata(url)
     return create_card_html(metadata)
+
+
+def generate_iframely_embed(url):
+    # URLのハッシュを生成してユニークなIDとして使用
+    url_hash = hashlib.md5(url.encode()).hexdigest()
+    
+    embed_html = f"""
+    <div class="iframely-embed">
+        <div class="iframely-responsive" style="padding-bottom: 0px; height: 450px;">
+            <iframe allowfullscreen="" allow="autoplay *; encrypted-media *; ch-prefers-color-scheme *" 
+                    src="//cdn.iframe.ly/{url_hash}?v=1&amp;app=1" 
+                    style="box-shadow: rgba(0, 0, 0, 0.06) 0px 1px 3px;">
+            </iframe>
+        </div>
+    </div>
+    <script async="" src="//cdn.iframe.ly/embed.js" charset="utf-8"></script>
+    """
+    
+    return embed_html
