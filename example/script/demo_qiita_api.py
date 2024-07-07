@@ -26,16 +26,25 @@ def post_article():
     data = {
         "title": "テスト投稿",
         "body": "# これはテスト投稿です\n\nQiita API v2を使用して投稿しています。",
-        "private": False,
+        "private": True,
         "tags": [{"name": "Python"}, {"name": "Qiita"}]
     }
     try:
         response = requests.post(endpoint, headers=headers, data=json.dumps(data))
         response.raise_for_status()
         logger.info(f"投稿ステータス: {response.status_code}")
+        logger.debug(f"レスポンスヘッダー: {response.headers}")
+        logger.debug(f"レスポンス本文: {response.text}")
         return response.json()['id']
     except requests.exceptions.RequestException as e:
         logger.error(f"投稿エラー: {e}")
+        logger.debug(f"リクエストURL: {e.request.url}")
+        logger.debug(f"リクエストヘッダー: {e.request.headers}")
+        logger.debug(f"リクエスト本文: {e.request.body}")
+        if e.response:
+            logger.debug(f"レスポンスステータス: {e.response.status_code}")
+            logger.debug(f"レスポンスヘッダー: {e.response.headers}")
+            logger.debug(f"レスポンス本文: {e.response.text}")
         return None
 
 def get_article(article_id):

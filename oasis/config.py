@@ -26,7 +26,7 @@ class Config:
     def validate(cls):
         """設定の妥当性を検証するメソッド"""
         if not cls.AUTH_USER or not cls.AUTH_PASS or not cls.BASE_URL:
-            raise ValueError(
+            logger.warning(
                 "WordPress の認証情報が不足しています。AUTH_USER, AUTH_PASS, BASE_URL を設定してください。"
             )
         else:
@@ -34,7 +34,7 @@ class Config:
             logger.info(f"WordPress BASE_URL: {cls.BASE_URL[:3]}")  # パスワードは表示しない
 
         if not cls.GEMINI_API_KEY:
-            raise ValueError(
+            logger.warning(
                 "Gemini API キーが設定されていません。GEMINI_API_KEY を設定してください。"
             )
         else:

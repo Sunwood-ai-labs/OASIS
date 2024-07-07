@@ -1,6 +1,6 @@
 # oasis\services\wordpress_api.py
 import requests
-
+from art import *
 try:
     from ..logger import logger
     from ..exceptions import APIError
@@ -14,10 +14,12 @@ except:
     
 class WordPressAPI:
     def __init__(self, base_url, auth_user, auth_pass):
-        self.base_url = base_url.rstrip('/')  # 末尾のスラッシュを削除
+        if(base_url):
+            self.base_url = base_url.rstrip('/')  # 末尾のスラッシュを削除
         self.auth = (auth_user, auth_pass)
         self.api_url = f"{self.base_url}/wp-json/wp/v2"
- 
+        
+
         # APIエンドポイントの可用性をチェック
         try:
             response = requests.get(self.api_url, auth=self.auth)
@@ -46,6 +48,7 @@ class WordPressAPI:
         return items
 
     def create_post(self, post):
+        tprint('>>  WordPressAPI')
         try:
             payload = {
                 'title': post.title,
