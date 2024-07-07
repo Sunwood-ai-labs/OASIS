@@ -1,7 +1,13 @@
 
 import mistune
 import re
-from .link_preview_generator import generate_site_card
+
+try:
+    from .link_preview_generator import generate_site_card, generate_iframely_embed
+except:
+    from link_preview_generator import generate_site_card, generate_iframely_embed
+
+DEBUG = False
 
 class MarkdownProcessor:
     def __init__(self):
@@ -14,16 +20,27 @@ class MarkdownProcessor:
         content, link_previews = self._process_link_previews(content)
         content, blockquotes = self._preserve_blockquotes(content)
         html_body = self._convert_to_html(content)
-        html_body = self._restore_blockquotes(html_body, blockquotes)
+        if DEBUG : save_html_file(html_body, "_html_body_convert_to_html.html")
         html_body = self._make_inline_code_bold(html_body)
+        if DEBUG : save_html_file(html_body, "_html_body_make_inline_code_bold.html")
+        html_body = self._restore_blockquotes(html_body, blockquotes)
+        if DEBUG : save_html_file(html_body, "_html_body_restore_blockquotes.html")
         html_body = self._restore_link_previews(html_body, link_previews)
+        if DEBUG : save_html_file(html_body, "_html_body_restore_link_previews.html")
         return html_body
 
     def _process_link_previews(self, content):
         link_previews = {}
         def replace_url_with_placeholder(match):
             url = match.group(0)
-            preview_html = generate_site_card(url)
+
+            # simple card
+            # preview_html = generate_site_card(url)
+
+            # iframe
+            preview_html = generate_iframely_embed(url)
+
+
             placeholder = f"LINK_PREVIEW_PLACEHOLDER_{len(link_previews)}"
             link_previews[placeholder] = preview_html
             return f"{url}\n\n{placeholder}\n"
@@ -46,14 +63,14 @@ class MarkdownProcessor:
         return html_body
 
     def _make_inline_code_bold(self, html_body):
-        code_blocks = re.findall(r'<pre><code.*?>.*?</code></pre>', html_body, re.DOTALL)
-        for i, block in enumerate(code_blocks):
-            html_body = html_body.replace(block, f'CODE_BLOCK_PLACEHOLDER_{i}')
+        # code_blocks = re.findall(r'<pre><code.*?>.*?</code></pre>', html_body, re.DOTALL)
+        # for i, block in enumerate(code_blocks):
+        #     html_body = html_body.replace(block, f'CODE_BLOCK_PLACEHOLDER_{i}')
 
-        html_body = re.sub(r'<code>(.*?)</code>', r'<strong>\1</strong>', html_body)
-
-        for i, block in enumerate(code_blocks):
-            html_body = html_body.replace(f'CODE_BLOCK_PLACEHOLDER_{i}', block)
+        # html_body = re.sub(r'<code>(.*?)</code>', r'<strong>\1</strong>', html_body)
+        html_body = re.sub(r'<code>([^<\n]+)</code>', r'<strong>\1</strong>', html_body)
+        # for i, block in enumerate(code_blocks):
+        #     html_body = html_body.replace(f'CODE_BLOCK_PLACEHOLDER_{i}', block)
 
         return html_body
 
