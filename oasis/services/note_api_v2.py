@@ -28,6 +28,8 @@ from janome.tokenizer import Tokenizer
 
 from .markdown_processor import MarkdownProcessor
 
+from art import *
+
 class NoteAPIV2:
     def __init__(
         self,
@@ -46,6 +48,7 @@ class NoteAPIV2:
             firefox_binary_path (Optional[str], optional): Firefoxのバイナリパス. Defaults to None.
             firefox_profile_path (Optional[str], optional): Firefoxのプロファイルパス. Defaults to None.
         """
+        
         self.email = email
         self.password = password
         self.user_id = user_id
@@ -434,6 +437,7 @@ class NoteAPIV2:
         Returns:
             Dict: 実行結果
         """
+        tprint('>>  NoteAPIV2')
         logger.info("記事の作成を開始します...")
         if not all(
             [
@@ -475,40 +479,6 @@ class NoteAPIV2:
         logger.success(" 記事の作成が完了しました。")
         return res
 
-def convert_markdown_to_html(content: str) -> str:
-    """
-    マークダウンをHTMLに変換し、高度な機能（入れ子の箇条書きを含む）を適切に処理します。
-    
-    Args:
-        content (str): マークダウン形式の文字列
-    
-    Returns:
-        str: 変換後のHTML文字列
-    """
-
-
-
-    # Mistuneインスタンスを作成
-    markdown = mistune.create_markdown(
-        renderer=mistune.HTMLRenderer(),
-        plugins=['table', 'url', 'strikethrough', 'footnotes', 'task_lists']
-    )
-
-
-    # blockquoteを保存
-    content, blockquotes = preserve_blockquotes(content)
-
-    # マークダウンをHTMLに変換
-    html_content = markdown(content)
-
-    # blockquoteを復元
-    html_content = restore_blockquotes(html_content, blockquotes)
-
-    # インラインコードを太字に変換
-    html_content = make_inline_code_bold(html_content)
-        
-    return html_content
-
 def save_html_locally(html_content: str, filename: str) -> None:
     """HTMLコンテンツをローカルファイルに保存します。"""
     try:
@@ -517,31 +487,3 @@ def save_html_locally(html_content: str, filename: str) -> None:
         logger.success(f"HTMLを'{filename}'に保存しました。")
     except IOError as e:
         logger.error(f"ファイルの保存中にエラーが発生しました: {e}")
-
-def preserve_blockquotes(md_text):
-    # blockquoteを一時的に置換
-    blockquotes = re.findall(r'<blockquote.*?>.*?</blockquote>', md_text, re.DOTALL)
-    for i, block in enumerate(blockquotes):
-        md_text = md_text.replace(block, f'BLOCKQUOTE_PLACEHOLDER_{i}')
-    return md_text, blockquotes
-
-def restore_blockquotes(html_body, blockquotes):
-    # blockquoteを元に戻す
-    for i, block in enumerate(blockquotes):
-        html_body = html_body.replace(f'BLOCKQUOTE_PLACEHOLDER_{i}', block)
-    return html_body
-
-def make_inline_code_bold(html_body):
-    # <pre>タグ内のコードブロックを一時的に置換
-    code_blocks = re.findall(r'<pre><code.*?>.*?</code></pre>', html_body, re.DOTALL)
-    for i, block in enumerate(code_blocks):
-        html_body = html_body.replace(block, f'CODE_BLOCK_PLACEHOLDER_{i}')
-
-    # インラインコードを太字に変換
-    html_body = re.sub(r'<code>(.*?)</code>', r'<strong>\1</strong>', html_body)
-
-    # コードブロックを元に戻す
-    for i, block in enumerate(code_blocks):
-        html_body = html_body.replace(f'CODE_BLOCK_PLACEHOLDER_{i}', block)
-
-    return html_body
