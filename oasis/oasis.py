@@ -21,6 +21,7 @@ class OASIS:
         llm_model=None,
         max_retries=3,
         qiita_token=None,
+        qiita_post_private=None,
         note_email=None,
         note_password=None,
         note_user_id=None,
@@ -60,7 +61,8 @@ class OASIS:
         self.llm_service = LLMService(max_retries=max_retries)
 
         if self.config.QIITA_TOKEN:
-            self.qiita_api = QiitaAPI(self.config.QIITA_TOKEN)
+            self.qiita_api = QiitaAPI(token=self.config.QIITA_TOKEN, 
+                                        post_private=qiita_post_private)
 
         # Note API の初期化は、必要な情報が設定されている場合にのみ行う
         if self.config.NOTE_EMAIL and self.config.NOTE_PASSWORD and self.config.NOTE_USER_ID:
