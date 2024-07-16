@@ -3,6 +3,9 @@ import re
 import time
 from random import randint
 from typing import Optional, List, Dict
+import re
+import html2text
+import markdown
 
 from bs4 import BeautifulSoup
 from markdown import markdown
@@ -187,7 +190,7 @@ class NoteAPIV2:
 
         processor = MarkdownProcessor()
         html_content = processor.convert_markdown_to_html(content)
-
+        
         # BeautifulSoupを使ってHTMLをパースする（必要に応じて）
         soup = BeautifulSoup(html_content, "html.parser")
 
@@ -487,3 +490,24 @@ def save_html_locally(html_content: str, filename: str) -> None:
         logger.success(f"HTMLを'{filename}'に保存しました。")
     except IOError as e:
         logger.error(f"ファイルの保存中にエラーが発生しました: {e}")
+
+def process_markdown_mermaid_blocks(markdown_text):
+    # マークダウンをHTMLに変換
+    html = markdown.markdown(markdown_text, extensions=['fenced_code'])
+    
+    # Mermaidコードブロックを探して特別な形式に置換
+    pattern = r'<pre><code class="language-mermaid">(.*?)</code></pre>'
+    replacement = lambda m: f'<pre><code>```mermaid\n{m.group(1)}\n```</code></pre>'
+    html = re.sub(pattern, replacement, html, flags=re.DOTALL)
+    
+    # HTMLをマークダウンに戻す
+    h = html2text.HTML2Text()
+    h.body_width = 0  # 行の折り返しを無効化
+    h.use_emphasis = True  # 強調構文を使用
+    markdown_result = h.handle(html)
+    
+    # コードブロック内の余分な改行を削除
+    markdown_result = re.sub(r'```mermaid\n\n', '```mermaid\n', markdown_result)
+    markdown_result = re.sub(r'\n\n```\n', '\n```\n', markdown_result)
+    
+    return markdown_result
