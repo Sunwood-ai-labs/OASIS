@@ -39,17 +39,20 @@ OASISは、MarkdownファイルからWordPress, Qiita, Noteへの投稿を自動
 
 ## ✨ 更新情報 ✨
 
-- **v0.5.0**: 
-  - 🔗 リンクプレビュー生成機能にiframelyサポートを追加しました。(実験的機能)
-  - 🚀 Note API v2では、HTMLを直接挿入することで、従来の方法よりも高速にコンテンツを投稿できるようになりました。
-  - 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.5.0)をご覧ください。
+- **v0.6.0**: 
+  - ✨ Zennへのクロス投稿機能を追加しました。 
+  - ✨ WordPressとNoteにおけるMermaid図のレンダリングに対応しました。
+  - 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.6.0)をご覧ください。
 
 <details>
   <summary>過去の更新情報はこちら</summary>
 
   ---
 
-
+- **v0.5.0**: 
+  - 🔗 リンクプレビュー生成機能にiframelyサポートを追加しました。(実験的機能)
+  - 🚀 Note API v2では、HTMLを直接挿入することで、従来の方法よりも高速にコンテンツを投稿できるようになりました。
+  - 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.5.0)をご覧ください。
 - **v0.4.3**: 📝 Noteへの投稿機能を大幅に改善しました。
   - ✨ マークダウンのより多くの要素に対応しました。
   - 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.4.3)をご覧ください。
@@ -65,7 +68,7 @@ OASISは、MarkdownファイルからWordPress, Qiita, Noteへの投稿を自動
 
 ## 🚀 はじめに
 
-OASISを使用すると、MarkdownファイルからWordPress, Qiita, Noteへの投稿を効率的に行うことができます。LLMによる自動カテゴリ・タグ提案やサムネイル画像の自動アップロードなど、便利な機能が満載です。
+OASISを使用すると、MarkdownファイルからWordPress, Qiita, Note, Zennへの投稿を効率的に行うことができます。LLMによる自動カテゴリ・タグ提案やサムネイル画像の自動アップロードなど、便利な機能が満載です。
 
 ## 💾 インストール
 
@@ -86,6 +89,7 @@ oasis /path/to/your/folder
 - `--qiita`: Qiitaにも投稿する
 - `--note`: Noteにも投稿する
 - `--wp`: WordPressにも投稿する
+- `--zenn`: Zennにも投稿する
 - `--wp-user`: WordPressのユーザー名
 - `--wp-pass`: WordPressのパスワード
 - `--wp-url`: WordPressのURL
@@ -101,8 +105,8 @@ oasis /path/to/your/folder
 例：
 
 ```bash
-oasis example\article\roomba01 --qiita --note --wp --firefox-headless
-oasis article_draft\21_Hunk --qiita --note --wp --firefox-headless
+oasis example\article\roomba01 --qiita --note --wp --zenn --firefox-headless
+oasis article_draft\21_Hunk --qiita --note --wp --zenn --firefox-headless
 ```
 
 ### 🐍 Pythonスクリプトから使用する場合:
@@ -111,7 +115,7 @@ oasis article_draft\21_Hunk --qiita --note --wp --firefox-headless
 from oasis import OASIS
 
 oasis = OASIS()
-result = oasis.process_folder("/path/to/your/folder", post_to_qiita=True, post_to_note=True, post_to_wp=True)  # Qiita, Note, WordPressへの投稿も行う場合
+result = oasis.process_folder("/path/to/your/folder", post_to_qiita=True, post_to_note=True, post_to_wp=True, post_to_zenn=True)  # Qiita, Note, WordPress, Zennへの投稿も行う場合
 print(result)
 ```
 

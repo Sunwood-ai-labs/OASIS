@@ -1,4 +1,4 @@
-mode:
+ss-mode:
  - DocuMind
 docuMind-model: "gemini/gemini-1.5-pro-latest"
 docuMind-db: ".SourceSageAssets/DOCUMIND/Repository_summary.md"
@@ -11,4 +11,5 @@ repo-version: "v0.6.0"
 
 # changelog-start-tag: "v0.1.0"
 # changelog-end-tag: "v0.6.0"
-# sourcesage --mode=DocuMind --yaml-file=docs\.sourcesage_releasenotes.yml
+# aira --mode sourcesage --ss-mode=DocuMind --yaml-file=docs\.sourcesage_releasenotes.yml
+# sourcesage --ss-mode=DocuMind --yaml-file=docs\.sourcesage_releasenotes.yml
