@@ -1,9 +1,16 @@
 from .services.file_handler import FileHandler
+
 from .services.wordpress_api import WordPressAPI
+from .services.wordpress_api import convert_markdown_to_html_with_mermaid, convert_html_to_markdown_preserve_mermaid
+
 from .services.llm_api import LLMService
 from .services.qiita_api import QiitaAPI
+
 from .services.note_api_v1 import NoteAPI
-from .services.note_api_v2 import NoteAPIV2
+from .services.note_api_v2 import NoteAPIV2, process_markdown_mermaid_blocks
+
+from .services.ZennAPI import ZennAPI
+
 from .models.post import Post
 from .logger import logger
 from .config import Config
@@ -84,11 +91,22 @@ class OASIS:
                     firefox_profile_path=firefox_profile_path
                 )
         self.note_publish = note_publish
+        
+        
+        # ZennAPIのインスタンスを作成
+        self.zenn_api = ZennAPI(
+            firefox_binary_path=firefox_binary_path,
+            firefox_profile_path=firefox_profile_path
+        )
         self.firefox_headless = firefox_headless
 
-
     def process_folder(
-        self, folder_path: str, post_to_qiita: bool = False, post_to_note: bool = False, post_to_wp: bool = False, slug = "test_slug", 
+        self, folder_path: str, 
+        post_to_qiita: bool = False, 
+        post_to_note: bool = False, 
+        post_to_wp: bool = False, 
+        post_to_zenn: bool = False, 
+        slug = "test_slug", 
     ):
 
         file_handler = FileHandler(folder_path)
@@ -96,6 +114,14 @@ class OASIS:
         logger.info("Markdownファイルの読み込みを開始します...")
         markdown_content, title = file_handler.read_markdown()
         logger.info(f"Markdownファイルの読み込みが完了しました: タイトル '{title}'")
+        
+        # wp 用に前処理
+        mermaid_html = convert_markdown_to_html_with_mermaid(markdown_content)
+        # mermaid_md = convert_html_to_markdown_preserve_mermaid(mermaid_html)
+        mermaid_md = mermaid_html
+        
+        # Note用に前処理
+        note_mermaid_md = process_markdown_mermaid_blocks(markdown_content)
 
         logger.info("サムネイル画像の検索を開始します...")
         thumbnail_path = file_handler.get_thumbnail()
@@ -146,13 +172,18 @@ class OASIS:
             f"カテゴリとタグの提案が完了しました: カテゴリ {len(suggestions['categories'])}, タグ {len(suggestions['tags'])}"
         )
 
+        
         post = Post(
             title, markdown_content, slug, suggestions['categories'], suggestions['tags']
+        )
+        
+        post_mermaid = Post(
+            title, mermaid_md, slug, suggestions['categories'], suggestions['tags']
         )
 
         if post_to_wp:
             logger.info("WordPressへの投稿を開始します...")
-            post_id = self.wp_api.create_post(post)
+            post_id = self.wp_api.create_post(post_mermaid)
             logger.info(f"WordPressへの投稿が完了しました: ID {post_id}")
 
             if thumbnail_path:
@@ -168,8 +199,21 @@ class OASIS:
         if post_to_note and hasattr(self, 'note_api'):
             logger.info("Noteへの投稿を開始します...")
             tags = [tag["name"] for tag in post.tags]
-            note_result = self.note_api.create_article(title, tags, text=markdown_content, headless=self.firefox_headless, post_setting=self.note_publish)
+            note_result = self.note_api.create_article(title, tags, text=note_mermaid_md, headless=self.firefox_headless, post_setting=self.note_publish)
             logger.info(f"Noteへの投稿が完了しました: {note_result}")
+        
+        if post_to_zenn:
+            tags = [tag["name"] for tag in post.tags]
+            # 記事を作成または編集
+            self.zenn_api.create_article(
+                title=post.title,
+                # content_file="memo.md",
+                content_md=post.content,
+                image_file=thumbnail_path,
+                headless=self.firefox_headless,
+                # draft_url="https://zenn.dev/articles/8bca383aea6243/edit",
+                tags=tags[:4]
+            )
 
         logger.info("投稿処理が正常に完了しました。")
         return post.to_dict()

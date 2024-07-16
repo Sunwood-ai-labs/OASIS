@@ -101,7 +101,8 @@ oasis /path/to/your/folder
 例：
 
 ```bash
-oasis example\article\roomba01 --qiita --note --wp
+oasis example\article\roomba01 --qiita --note --wp --firefox-headless
+oasis article_draft\21_Hunk --qiita --note --wp --firefox-headless
 ```
 
 ### 🐍 Pythonスクリプトから使用する場合:

@@ -24,6 +24,7 @@ def main():
     parser.add_argument('--qiita', action='store_true', help='Qiitaにも投稿する')
     parser.add_argument('--note', action='store_true', help='Noteにも投稿する')
     parser.add_argument('--wp', action='store_true', help='WordPressにも投稿する')
+    parser.add_argument('--zenn', action='store_true', help='Zennにも投稿する')
 
     # wp
     parser.add_argument('--wp-user', type=str, help='WordPressのユーザー名')
@@ -41,6 +42,9 @@ def main():
     parser.add_argument('--note-publish', action='store_true', help='公開するかどうか')
     parser.add_argument('--note-api-ver', type=str, default="v2", help='NoteのAPI Ver')
     
+    # zenn
+    # parser.add_argument('--qiita-token', type=str, help='QiitaのAPIトークン')
+    # parser.add_argument('--qiita-post-publish', action='store_true', help='Qiitaの公開設定')
 
     # Firefox 設定
     parser.add_argument('--firefox-binary-path', type=str, help='Firefox の実行ファイルへのパス')
@@ -71,7 +75,8 @@ def main():
     )
 
     result = oasis.process_folder(
-        args.folder_path, post_to_qiita=args.qiita, post_to_note=args.note, post_to_wp=args.wp
+        args.folder_path, 
+        post_to_qiita=args.qiita, post_to_note=args.note, post_to_wp=args.wp, post_to_zenn=args.zenn
     )
 
     logger.info("投稿が正常に作成されました！")
