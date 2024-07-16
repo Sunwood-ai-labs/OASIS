@@ -1,6 +1,11 @@
 # oasis\services\wordpress_api.py
 import requests
 from art import *
+import re
+import markdown
+from markdown.extensions import codehilite, fenced_code
+import html2text
+
 try:
     from ..logger import logger
     from ..exceptions import APIError
@@ -49,6 +54,7 @@ class WordPressAPI:
 
     def create_post(self, post):
         tprint('>>  WordPressAPI')
+        print(post.content)
         try:
             payload = {
                 'title': post.title,
@@ -207,3 +213,37 @@ if __name__ == "__main__":
         print(f"APIエラーが発生しました: {e}")
     except Exception as e:
         print(f"予期せぬエラーが発生しました: {e}")
+
+def convert_markdown_to_html_with_mermaid(markdown_text):
+    # マークダウンをHTMLに変換（コードブロックのサポート付き）
+    html = markdown.markdown(markdown_text, extensions=['fenced_code'])
+    
+    # Mermaidコードブロックを探して置換
+    pattern = r'<pre.*?><code.*?class=".*?language-mermaid.*?">(.*?)</code></pre>'
+    replacement = lambda m: f'<!-- wp:wp-mermaid/block -->\n<div class="wp-block-wp-mermaid-block mermaid">{m.group(1)}</div>\n<!-- /wp:wp-mermaid/block -->'
+    html = re.sub(pattern, replacement, html, flags=re.DOTALL)
+    
+    return html
+
+def convert_html_to_markdown_preserve_mermaid(html):
+    # Mermaidブロックを一時的にプレースホルダーに置き換え
+    mermaid_blocks = []
+    pattern = r'(<!-- wp:wp-mermaid/block -->.*?<!-- /wp:wp-mermaid/block -->)'
+    
+    def replace_mermaid(match):
+        mermaid_blocks.append(match.group(1))
+        return f'MERMAID_PLACEHOLDER_{len(mermaid_blocks) - 1}'
+    
+    html_with_placeholders = re.sub(pattern, replace_mermaid, html, flags=re.DOTALL)
+    
+    # HTMLをマークダウンに変換
+    h = html2text.HTML2Text()
+    h.body_width = 0  # 行の折り返しを無効化
+    markdown_text = h.handle(html_with_placeholders)
+    
+    # プレースホルダーをMermaidブロックに戻す
+    for i, block in enumerate(mermaid_blocks):
+        markdown_text = markdown_text.replace(f'MERMAID_PLACEHOLDER_{i}', block)
+    
+    markdown_text.replace("<!-- /wp:wp-mermaid/block --> ", "<!-- /wp:wp-mermaid/block -->")
+    return markdown_text
