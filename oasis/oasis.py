@@ -9,7 +9,8 @@ from .services.qiita_api import QiitaAPI
 from .services.note_api_v1 import NoteAPI
 from .services.note_api_v2 import NoteAPIV2, process_markdown_mermaid_blocks
 
-from .services.ZennAPI import ZennAPI
+from .services.ZennAPI_v1 import ZennAPI
+from .services.ZennAPI_v2 import ZennAPIV2
 
 from .models.post import Post
 from .logger import logger
@@ -37,6 +38,8 @@ class OASIS:
         firefox_profile_path=None,  # Firefox のプロファイルパスを追加
         firefox_headless=False,
         note_api_ver = "v2",
+        zenn_api_ver = "v2",
+        zenn_output_path = None
     ):
         self.config = Config()
         if base_url:
@@ -98,6 +101,9 @@ class OASIS:
             firefox_binary_path=firefox_binary_path,
             firefox_profile_path=firefox_profile_path
         )
+        self.zenn_api_v2 = ZennAPIV2()
+        self.zenn_output_path = zenn_output_path
+        
         self.firefox_headless = firefox_headless
 
     def process_folder(
@@ -114,12 +120,7 @@ class OASIS:
         logger.info("Markdownファイルの読み込みを開始します...")
         markdown_content, title = file_handler.read_markdown()
         logger.info(f"Markdownファイルの読み込みが完了しました: タイトル '{title}'")
-        
-        # wp 用に前処理
-        mermaid_html = convert_markdown_to_html_with_mermaid(markdown_content)
-        # mermaid_md = convert_html_to_markdown_preserve_mermaid(mermaid_html)
-        mermaid_md = mermaid_html
-        
+                
         # Note用に前処理
         note_mermaid_md = process_markdown_mermaid_blocks(markdown_content)
 
@@ -137,6 +138,8 @@ class OASIS:
         category_map_path = os.path.join(json_folder, "category_map.json")
         tag_map_path = os.path.join(json_folder, "tag_map.json")
 
+        slug = self.llm_service.generate_english_slug(title)
+        
         if post_to_wp:
             logger.info("既存のカテゴリとタグの取得を開始します...")
             category_map, tag_map = self.wp_api.get_existing_categories_and_tags()
@@ -148,7 +151,7 @@ class OASIS:
                 json.dump(tag_map, f, ensure_ascii=False, indent=4)
 
             logger.info("英語のスラグ生成を開始します...")
-            slug = self.llm_service.generate_english_slug(title)
+            
             logger.info(f"英語のスラグ生成が完了しました: {slug}")
         else:
             # Load category_map and tag_map from JSON files if they exist
@@ -177,13 +180,9 @@ class OASIS:
             title, markdown_content, slug, suggestions['categories'], suggestions['tags']
         )
         
-        post_mermaid = Post(
-            title, mermaid_md, slug, suggestions['categories'], suggestions['tags']
-        )
-
         if post_to_wp:
             logger.info("WordPressへの投稿を開始します...")
-            post_id = self.wp_api.create_post(post_mermaid)
+            post_id = self.wp_api.create_post(post)
             logger.info(f"WordPressへの投稿が完了しました: ID {post_id}")
 
             if thumbnail_path:
@@ -205,14 +204,24 @@ class OASIS:
         if post_to_zenn:
             tags = [tag["name"] for tag in post.tags]
             # 記事を作成または編集
-            self.zenn_api.create_article(
+            # self.zenn_api.create_article(
+            #     title=post.title,
+            #     # content_file="memo.md",
+            #     content_md=post.content,
+            #     image_file=thumbnail_path,
+            #     headless=self.firefox_headless,
+            #     # draft_url="https://zenn.dev/articles/8bca383aea6243/edit",
+            #     tags=tags[:4]
+            # )
+            
+            self.zenn_api_v2.create_article(
                 title=post.title,
-                # content_file="memo.md",
-                content_md=post.content,
+                slug=post.slug,
+                content_md=post.content,  # post.contentが記事の本文を含んでいると仮定
+                type="tech",  # または "idea"（コンテンツに応じて）
+                topics=tags[:4],
                 image_file=thumbnail_path,
-                headless=self.firefox_headless,
-                # draft_url="https://zenn.dev/articles/8bca383aea6243/edit",
-                tags=tags[:4]
+                output_dir=self.zenn_output_path
             )
 
         logger.info("投稿処理が正常に完了しました。")
