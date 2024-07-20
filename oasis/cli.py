@@ -17,7 +17,7 @@ def main():
     # llm
     parser.add_argument('--llm-model', type=str, help='使用するLLMモデル')
     parser.add_argument(
-        '--max-retries', type=int, default=3, help='LLMリクエストの最大リトライ回数'
+        '--max-retries', type=int, default=10, help='LLMリクエストの最大リトライ回数'
     )
     
     # mode
@@ -45,6 +45,7 @@ def main():
     # zenn
     # parser.add_argument('--qiita-token', type=str, help='QiitaのAPIトークン')
     # parser.add_argument('--qiita-post-publish', action='store_true', help='Qiitaの公開設定')
+    parser.add_argument('--zenn-output-path', default=r"C:\Prj\Zenn\articles", help='ZennAPI V2の出力フォルダ')
 
     # Firefox 設定
     parser.add_argument('--firefox-binary-path', type=str, help='Firefox の実行ファイルへのパス')
@@ -68,7 +69,8 @@ def main():
         note_api_ver=args.note_api_ver,
         firefox_binary_path=args.firefox_binary_path,  # Firefox のパス
         firefox_profile_path=args.firefox_profile_path,  # Firefox のプロファイルパス
-        firefox_headless=args.firefox_headless
+        firefox_headless=args.firefox_headless,
+        zenn_output_path=args.zenn_output_path
     )
     logger.info(
         f"使用中のLLMモデル: {oasis.config.LLM_MODEL}, 最大リトライ回数: {args.max_retries}"

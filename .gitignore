@@ -176,3 +176,11 @@ output.html
 saved_article.html
 site_card.html
 .env copy
+debug_output
+html_replacement1.html
+html_raw.html
+html_content.html
+html_with_placeholders.html
+markdown_html.html
+markdown_text.md
+markdown_text2.md
