@@ -1,8 +1,7 @@
-
 <p align="center">
 <img src="https://huggingface.co/datasets/MakiAi/IconAssets/resolve/main/OASIS.png" width="100%">
 <br>
-<h1 align="center">🌵 O.A.S.I.S 🌵</h1>
+<h1 align="center"> O.A.S.I.S </h1>
 <h2 align="center">
   ～ Optimized Article Sorting Intelligent System ～
 <br>
@@ -22,10 +21,10 @@
 <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/Sunwood-ai-labs/OASIS/publish-to-pypi.yml">
 <br>
 <p align="center">
-  <a href="https://hamaruki.com/"><b>[ Website 🌐]</b></a> •
-  <a href="https://github.com/Sunwood-ai-labs"><b>[ GitHub 💻]</b></a>
-  <a href="https://x.com/hAru_mAki_ch"><b>[ Twitter 🐦]</b></a> •
-  <a href="https://hamaruki.com/"><b>[ Official Blog 📝]</b></a>
+  <a href="https://hamaruki.com/"><b>[ Website ]</b></a> •
+  <a href="https://github.com/Sunwood-ai-labs"><b>[ GitHub ]</b></a>
+  <a href="https://x.com/hAru_mAki_ch"><b>[ Twitter ]</b></a> •
+  <a href="https://hamaruki.com/"><b>[ Official Blog ]</b></a>
 </p>
 
 </h2>
@@ -35,28 +34,32 @@
 >[!IMPORTANT]
 >このリポジトリのリリースノートやREADME、コミットメッセージの9割近くは[claude.ai](https://claude.ai/)や[ChatGPT4](https://chatgpt.com/)を活用した[AIRA](https://github.com/Sunwood-ai-labs/AIRA), [SourceSage](https://github.com/Sunwood-ai-labs/SourceSage), [Gaiah](https://github.com/Sunwood-ai-labs/Gaiah), [HarmonAI_II](https://github.com/Sunwood-ai-labs/HarmonAI_II)で生成しています。
 
-OASISは、MarkdownファイルからWordPress, Qiita, Noteへの投稿を自動化するPythonパッケージです。🚀
+OASISは、MarkdownファイルからWordPress, Qiita, Note, Zennへの投稿を自動化するPythonパッケージです。 
 
-## ✨ 更新情報 ✨
+## 更新情報 
 
-- **v0.6.0**: 
-  - ✨ Zennへのクロス投稿機能を追加しました。 
-  - ✨ WordPressとNoteにおけるMermaid図のレンダリングに対応しました。
-  - 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.6.0)をご覧ください。
+- **v0.7.0**: 
+  - Zennへのクロス投稿機能を追加しました([ZennAPI V2](oasis/services/ZennAPI_v2.py))。 
+  - WordPressとNoteにおけるMermaid図のレンダリングに対応しました。
+  - 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.7.0)をご覧ください。
 
 <details>
   <summary>過去の更新情報はこちら</summary>
 
   ---
 
+- **v0.6.0**: 
+  - Zennへのクロス投稿機能を追加しました。 
+  - WordPressとNoteにおけるMermaid図のレンダリングに対応しました。
+  - 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.6.0)をご覧ください。
 - **v0.5.0**: 
-  - 🔗 リンクプレビュー生成機能にiframelyサポートを追加しました。(実験的機能)
-  - 🚀 Note API v2では、HTMLを直接挿入することで、従来の方法よりも高速にコンテンツを投稿できるようになりました。
+  - リンクプレビュー生成機能にiframelyサポートを追加しました。(実験的機能)
+  - Note API v2では、HTMLを直接挿入することで、従来の方法よりも高速にコンテンツを投稿できるようになりました。
   - 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.5.0)をご覧ください。
-- **v0.4.3**: 📝 Noteへの投稿機能を大幅に改善しました。
-  - ✨ マークダウンのより多くの要素に対応しました。
+- **v0.4.3**: Noteへの投稿機能を大幅に改善しました。
+  - マークダウンのより多くの要素に対応しました。
   - 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.4.3)をご覧ください。
-- **v0.4.0**: 📝 Noteへのクロス投稿機能を追加しました。MarkdownファイルからNoteへの記事投稿を自動化し、複数のプラットフォームでコンテンツを簡単に共有できます。 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.4.0)をご覧ください。
+- **v0.4.0**: Noteへのクロス投稿機能を追加しました。MarkdownファイルからNoteへの記事投稿を自動化し、複数のプラットフォームでコンテンツを簡単に共有できます。 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.4.0)をご覧ください。
 - **過去のバージョン情報はこちら:** [Releases](https://github.com/Sunwood-ai-labs/OASIS/releases)
 </details>
 
@@ -64,19 +67,19 @@ OASISは、MarkdownファイルからWordPress, Qiita, Noteへの投稿を自動
 
 ## デモ
 
-🎬 近日公開予定！
+https://github.com/user-attachments/assets/742c5822-04ec-4f9b-98fb-42fc3a101ab6
 
-## 🚀 はじめに
+## はじめに
 
 OASISを使用すると、MarkdownファイルからWordPress, Qiita, Note, Zennへの投稿を効率的に行うことができます。LLMによる自動カテゴリ・タグ提案やサムネイル画像の自動アップロードなど、便利な機能が満載です。
 
-## 💾 インストール
+## インストール
 
 ```bash
 pip install -U oasis-article
 ```
 
-## 💻 使用方法
+## 使用方法
 
 ### コマンドラインから使用する場合:
 
@@ -101,6 +104,7 @@ oasis /path/to/your/folder
 - `--firefox-binary-path`: Firefox の実行ファイルへのパス
 - `--firefox-profile-path`: 使用する Firefox プロファイルへのパス
 - `--firefox-headless`: Firefoxのヘッドレスモード
+- `--zenn-output-path`: ZennAPI V2で記事ファイルを生成する出力フォルダ
 
 例：
 
@@ -109,7 +113,7 @@ oasis example\article\roomba01 --qiita --note --wp --zenn --firefox-headless
 oasis article_draft\21_Hunk --qiita --note --wp --zenn --firefox-headless
 ```
 
-### 🐍 Pythonスクリプトから使用する場合:
+### Pythonスクリプトから使用する場合:
 
 ```python
 from oasis import OASIS
@@ -119,7 +123,7 @@ result = oasis.process_folder("/path/to/your/folder", post_to_qiita=True, post_t
 print(result)
 ```
 
-## ⚙️ 設定
+## 設定
 
 環境変数を使用して設定を行います:
 [.env.example](.env.example)を参考にしてください。
@@ -135,7 +139,7 @@ print(result)
 - `FIREFOX_BINARY_PATH`: Firefox の実行ファイルへのパス (任意)
 - `FIREFOX_PROFILE_PATH`: 使用する Firefox プロファイルへのパス (任意)
 
-## 🧪 サンプルスクリプト
+## サンプルスクリプト
 
 `example/script`フォルダには、OASISの様々な機能を試すためのサンプルスクリプトが用意されています。
 
@@ -146,16 +150,21 @@ print(result)
 
 これらのスクリプトは、OASISの機能を理解し、実際に試してみるための良い出発点となります。
 
-## 🤝 コントリビューション
+## ZennAPI V2 について
+
+ZennAPI V2 は、Zenn と GitHub の連携を活用して動作します。 `--zenn-output-path` オプションで指定したフォルダに、Zenn の記事ファイル (.md) を生成します。 生成された記事ファイルを GitHub リポジトリにプッシュすると、Zenn 上で記事が公開されます。
+
+## コントリビューション
 
 OASISの開発にご協力いただける方は、GitHubリポジトリにアクセスしてください。Issue報告、プルリクエストをお待ちしております。
 
-##  📜 ライセンス
+## ライセンス
 
 このプロジェクトはMITライセンスの下で公開されています。 
 
-## 🙏 謝辞
+## 謝辞
 
 OASISの開発にあたり、多大な貢献をしていただいた方々に感謝申し上げます。
 
 - Note APIの開発は [Mr-SuperInsane/NoteClient](https://github.com/Mr-SuperInsane/NoteClient) を参考にさせていただきました。
+```
