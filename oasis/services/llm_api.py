@@ -5,8 +5,13 @@ from ..exceptions import APIError
 import json
 import re
 
+from tqdm import tqdm
+import litellm
+import time
+litellm.set_verbose=False # 👈 this is the 1-line change you need to make
+
 class LLMService:
-    def __init__(self, max_retries=3):
+    def __init__(self, max_retries=10):
         self.model = Config.LLM_MODEL
         self.max_retries = max_retries
         logger.info(f"LLMモデルを初期化: {self.model}, 最大リトライ回数: {self.max_retries}")
@@ -36,8 +41,10 @@ class LLMService:
             except json.JSONDecodeError:
                 logger.warning(f"LLMの応答がJSONではありません。リトライします。(試行 {attempt + 1}/{self.max_retries})")
             except Exception as e:
-                logger.error(f"LLMリクエスト中にエラーが発生: {str(e)}")
-                raise APIError(f"LLMリクエスト中にエラーが発生: {str(e)}")
+                logger.error(f"LLMリクエスト中にエラーが発生: {str(e)} \n リトライします。(試行 {attempt + 1}/{self.max_retries})")
+                for _ in tqdm(range(60)):
+                    time.sleep(1)
+                # raise APIError(f"LLMリクエスト中にエラーが発生: {str(e)}")
         
         raise APIError(f"LLMからの有効な応答の取得に失敗しました。{self.max_retries}回試行しました。")
 

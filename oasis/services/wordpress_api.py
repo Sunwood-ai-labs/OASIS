@@ -1,5 +1,13 @@
 # oasis\services\wordpress_api.py
 import requests
+from art import *
+import re
+import markdown
+from markdown.extensions import codehilite, fenced_code
+import html2text
+import html
+import os
+from bs4 import BeautifulSoup, Comment
 
 try:
     from ..logger import logger
@@ -14,10 +22,12 @@ except:
     
 class WordPressAPI:
     def __init__(self, base_url, auth_user, auth_pass):
-        self.base_url = base_url.rstrip('/')  # 末尾のスラッシュを削除
+        if(base_url):
+            self.base_url = base_url.rstrip('/')  # 末尾のスラッシュを削除
         self.auth = (auth_user, auth_pass)
         self.api_url = f"{self.base_url}/wp-json/wp/v2"
- 
+        
+
         # APIエンドポイントの可用性をチェック
         try:
             response = requests.get(self.api_url, auth=self.auth)
@@ -46,10 +56,16 @@ class WordPressAPI:
         return items
 
     def create_post(self, post):
+        tprint('>>  WordPressAPI')
+        
+        # wp 用に前処理
+        mermaid_html = convert_markdown_to_html_with_mermaid(post.content)
+        mermaid_md = convert_html_to_markdown_preserve_mermaid(mermaid_html)
+
         try:
             payload = {
                 'title': post.title,
-                'content': post.content,
+                'content': mermaid_md,
                 'status': 'draft',
                 'slug': post.slug,
                 'categories': [self._create_or_get_term(cat, 'categories') for cat in post.categories],
@@ -163,6 +179,118 @@ class WordPressAPI:
             page += 1
         return items
 
+
+
+def convert_markdown_to_html_with_mermaid(markdown_text, output_dir='debug_output'):
+    # 出力ディレクトリの作成
+    os.makedirs(output_dir, exist_ok=True)
+
+    # マークダウンをHTMLに変換（コードブロックのサポート付き）
+    html = markdown.markdown(markdown_text, extensions=['fenced_code'])
+    
+    # 変換前のHTMLを保存
+    with open(os.path.join(output_dir, 'before_conversion.html'), 'w', encoding='utf-8') as f:
+        f.write(html)
+    
+    # BeautifulSoupを使用してHTMLを解析
+    soup = BeautifulSoup(html, 'html.parser')
+    
+    # BeautifulSoupのバージョンとパーサーを出力
+    # print(f"Parser being used: {soup.parser}")
+
+    # すべてのcodeタグを検索
+    for code_block in soup.find_all('code'):
+        # classが'language-mermaid'を含む場合のみ処理
+        if code_block.has_attr('class') and 'language-mermaid' in code_block['class']:
+            # 親のpreタグを新しい構造で置換
+            new_block = soup.new_tag('div')
+            new_block['class'] = 'wp-block-wp-mermaid-block mermaid'
+            new_block.string = code_block.string
+            
+            wrapper = soup.new_tag('div')
+            # Comment オブジェクトを直接作成
+            wrapper.append(Comment(' wp:wp-mermaid/block '))
+            wrapper.append(new_block)
+            wrapper.append(Comment(' /wp:wp-mermaid/block '))
+            
+            code_block.parent.replace_with(wrapper)
+    
+    # 変換後のHTMLを保存
+    converted_html = str(soup)
+    with open(os.path.join(output_dir, 'after_conversion.html'), 'w', encoding='utf-8') as f:
+        f.write(converted_html)
+
+    return converted_html
+
+def convert_html_to_markdown_preserve_mermaid(html_content):
+    # Mermaidブロック、blockquote、Twitter埋め込み、コードブロックを一時的にプレースホルダーに置き換え
+    special_blocks = []
+    patterns = [
+        r'(<!-- wp:wp-mermaid/block -->.*?<!-- /wp:wp-mermaid/block -->)',
+        r'(<blockquote class="twitter-tweet".*?</blockquote>)',
+        r'(<blockquote>.*?</blockquote>)',
+        r'(<script async src="https://platform\.twitter\.com/widgets\.js" charset="utf-8"></script>)',
+        r'(<pre><code.*?>.*?</code></pre>)'
+    ]
+    
+    def replace_special_block(match):
+        block = match.group(1)
+        if block.startswith('<pre><code'):
+            # コードブロックの処理
+            soup = BeautifulSoup(block, 'html.parser')
+            code_block = soup.find('code')
+            
+            # 言語情報を取得
+            language = ''
+            if code_block.has_attr('class'):
+                classes = code_block['class']
+                language_class = next((c for c in classes if c.startswith('language-')), None)
+                if language_class:
+                    language = language_class.split('-')[1]
+            
+            # コードの内容を取得し、HTMLエンティティをデコード
+            code_content = html.unescape(code_block.string)
+            
+            # マークダウン形式のコードブロックを作成
+            markdown_code = f"```{language}\n{code_content}\n```"
+            special_blocks.append(markdown_code)
+        else:
+            special_blocks.append(block)
+        return f'__SPECIAL_BLOCK_PLACEHOLDER_{len(special_blocks) - 1}__'
+
+
+    with open("html_content.html", 'w', encoding='utf-8') as file:
+        file.write(html_content)    
+    html_with_placeholders = html_content
+
+    for pattern in patterns:
+        html_with_placeholders = re.sub(pattern, replace_special_block, html_with_placeholders, flags=re.DOTALL)
+    
+    with open("html_with_placeholders.html", 'w', encoding='utf-8') as file:
+        file.write(html_with_placeholders)
+        
+    # HTMLをマークダウンに変換
+    h = html2text.HTML2Text()
+    h.body_width = 0  # 行の折り返しを無効化
+    markdown_text = h.handle(html_with_placeholders)
+    
+    with open("markdown_text.md", 'w', encoding='utf-8') as file:
+        file.write(markdown_text)
+        
+    # プレースホルダーを特殊ブロックに戻す
+    for i, block in enumerate(special_blocks):
+        print("----------------")
+        print(i)
+        print(block)
+        markdown_text = markdown_text.replace(f'__SPECIAL_BLOCK_PLACEHOLDER_{i}__', block + "\n")
+    
+    markdown_text = markdown_text.replace("<!-- /wp:wp-mermaid/block --> ", "<!-- /wp:wp-mermaid/block -->")
+
+    with open("markdown_text2.md", 'w', encoding='utf-8') as file:
+        file.write(markdown_text)
+    
+    return markdown_text
+
 if __name__ == "__main__":
     import os
     from dotenv import load_dotenv
@@ -178,29 +306,28 @@ if __name__ == "__main__":
     # WordPressAPIのインスタンスを作成
     wp_api = WordPressAPI(BASE_URL, AUTH_USER, AUTH_PASS)
 
-    try:
-        # カテゴリとタグの取得をテスト
-        categories, tags = wp_api.get_existing_categories_and_tags()
-        # print(f"取得したカテゴリ: {categories}")
-        # print(f"取得したタグ: {tags}")
+    with open(r"article_draft\45_Kolors\README.md", 'r', encoding='utf-8') as file:
+        content = file.read()
 
-        # テスト投稿の作成
-        class TestPost:
-            def __init__(self):
-                self.title = "テスト投稿"
-                self.content = "これはテスト投稿です。"
-                self.slug = "test-post"
-                self.categories = [{"name": "テストカテゴリ", "slug": "test-category"}]
-                self.tags = [{"name": "テストタグ", "slug": "test-tag"}]
+    # カテゴリとタグの取得をテスト
+    categories, tags = wp_api.get_existing_categories_and_tags()
+    # print(f"取得したカテゴリ: {categories}")
+    # print(f"取得したタグ: {tags}")
+    
 
-        test_post = TestPost()
-        post_id = wp_api.create_post(test_post)
-        print(f"作成された投稿のID: {post_id}")
+    # テスト投稿の作成
+    class TestPost:
+        def __init__(self):
+            self.title = "テスト投稿"
+            self.content = content
+            self.slug = "test-post"
+            self.categories = [{"name": "テストカテゴリ", "slug": "test-category"}]
+            self.tags = [{"name": "テストタグ", "slug": "test-tag"}]
 
-        # テスト画像のアップロード（実際の画像ファイルパスに置き換えてください）
-        # wp_api.upload_thumbnail(post_id, "path/to/test/image.jpg")
+    test_post = TestPost()
+    post_id = wp_api.create_post(test_post)
+    print(f"作成された投稿のID: {post_id}")
 
-    except APIError as e:
-        print(f"APIエラーが発生しました: {e}")
-    except Exception as e:
-        print(f"予期せぬエラーが発生しました: {e}")
+    # テスト画像のアップロード（実際の画像ファイルパスに置き換えてください）
+    # wp_api.upload_thumbnail(post_id, "path/to/test/image.jpg")
+

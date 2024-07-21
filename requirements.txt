@@ -1,0 +1,11 @@
+requests
+python-dotenv
+matplotlib
+japanize-matplotlib
+numpy
+tenacity
+litellm
+loguru
+click
+art
+git+https://github.com/Sunwood-ai-labs/NoteClient.git
