@@ -184,3 +184,15 @@ html_with_placeholders.html
 markdown_html.html
 markdown_text.md
 markdown_text2.md
+example/script/hovercraft/slide_mov/
+example/script/hovercraft/presentation.mp4
+temp.pdf
+example/script/hovercraft/*.rst
+example/script/hovercraft/*.md
+sample.md
+temp_slide.md
+output.png
+intermediate_slide_html.html
+intermediate_slide_content.txt
+intermediate_html_content.html
+example/script/landslide/presentation.html
