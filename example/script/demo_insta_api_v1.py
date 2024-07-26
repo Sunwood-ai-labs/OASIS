@@ -9,8 +9,15 @@ from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.firefox import GeckoDriverManager
+from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, ElementClickInterceptedException, StaleElementReferenceException
+
 import json
 
+from PIL import Image
 from loguru import logger
 from art import *
 from tqdm import tqdm
@@ -65,14 +72,40 @@ class InstaAPIV1:
         time.sleep(2)
         logger.success(f"{url} への移動が完了しました。")
 
-    def click_button(self, selector: str, wait_time: int = 10, by: By = By.CSS_SELECTOR):
-        # 指定されたセレクターのボタンをクリック
+        
+        
+    def click_button(self, selector: str, by: By = By.XPATH, timeout: int = 10, retries: int = 3):
         logger.info(f"{selector} ボタンをクリックしています...")
-        wait = WebDriverWait(self.driver, wait_time)
-        button = wait.until(EC.element_to_be_clickable((by, selector)))
-        button.click()
-        time.sleep(1)
-        logger.success(f"{selector} ボタンのクリックが完了しました。")
+        
+        for attempt in range(retries):
+            try:
+                # 要素が見つかるまで待機
+                element = WebDriverWait(self.driver, timeout).until(
+                    EC.element_to_be_clickable((by, selector))
+                )
+                
+                # クリックを試みる
+                element.click()
+                
+                # クリック後の短い待機
+                time.sleep(2)
+                
+                logger.success(f"{selector} ボタンのクリックが完了しました。")
+                return True  # クリック成功
+            
+            except (TimeoutException, ElementClickInterceptedException, StaleElementReferenceException) as e:
+                logger.warning(f"クリック試行 {attempt + 1}/{retries} 失敗: {str(e)}")
+                
+                if attempt < retries - 1:
+                    time.sleep(2)  # 次の試行前に少し待機
+                else:
+                    # 最後の試行でも失敗した場合
+                    logger.error(f"{selector} ボタンのクリックに失敗しました。")
+                    self.take_screenshot(f"click_error_{selector.replace('/', '_')}_{int(time.time())}.png")
+                    return False  # クリック失敗
+        
+        return False  # すべての試行が失敗
+
 
     def fill_text_input(self, selector: str, text: str, wait_time: int = 10, chunk_size: int = 10, delay: float = 0.1):
         # テキスト入力フィールドにテキストを入力
@@ -97,7 +130,20 @@ class InstaAPIV1:
         
         logger.success(f"{selector} への入力が完了しました。")
 
+    def convert_webp_to_png(self, file_path: str) -> str:
+        if file_path.lower().endswith('.webp'):
+            im = Image.open(file_path).convert("RGBA")
+            png_path = os.path.splitext(file_path)[0] + ".png"
+            im.save(png_path, "PNG")
+            logger.info(f"WebPファイル {file_path} をPNGファイル {png_path} に変換しました。")
+            return png_path
+        return file_path
+
     def upload_image(self, file_path: str, wait_time: int = 10):
+        
+        # WebPファイルの場合、PNGに変換
+        file_path = self.convert_webp_to_png(file_path)
+        time.sleep(5)
         # 画像をアップロード
         logger.info(f"{file_path} をアップロードしています...")
         file_input = self.driver.find_element(By.CSS_SELECTOR, "input[type='file']")
@@ -112,6 +158,18 @@ class InstaAPIV1:
             self.driver.quit()
             logger.success("WebDriverを閉じました。")
 
+    def click_create_post_button(self):
+        xpath = "//span[contains(@class, 'x1lliihq') and .//span[text()='作成']]"
+        return self.click_button(xpath, by=By.XPATH)
+
+    def click_next_button(self):
+        xpath = "//div[contains(@class, 'x9f619') and contains(@class, 'xjbqb8w') and text()='次へ']"
+        return self.click_button(xpath, by=By.XPATH)
+
+    def click_share_button(self):
+        xpath = "//div[contains(@class, 'x9f619') and contains(@class, 'xjbqb8w') and text()='シェア']"
+        return self.click_button(xpath, by=By.XPATH)
+
     def create_post(self, image_file: str, caption_file: str, headless: bool = False):
         # Instagram投稿を作成
         tprint('>>  InstaAPI')
@@ -122,15 +180,19 @@ class InstaAPIV1:
             self.login(os.getenv("INSTAGRAM_USERNAME"), os.getenv("INSTAGRAM_PASSWORD"))
             
             # 投稿ボタンをクリック
-            self.click_button("/html/body/div[2]/div/div/div[2]/div/div/div[1]/div[1]/div[1]/div/div/div/div/div[2]/div[7]/div/span/div/a/div", by=By.XPATH)
+            xpath = "//span[contains(@class, 'x4k7w5x')]//a[contains(@class, '_a6hd')]"
+            # self.click_button(xpath, by=By.XPATH)
+            self.click_create_post_button()
             
             # 画像をアップロード
             self.upload_image(image_file)
             
             # 「次へ」ボタンを2回クリック
-            self.click_button("/html/body/div[6]/div[1]/div/div[3]/div/div/div/div/div/div/div/div[1]/div/div/div/div[3]/div", by=By.XPATH)
+            # self.click_button("/html/body/div[6]/div[1]/div/div[3]/div/div/div/div/div/div/div/div[1]/div/div/div/div[3]/div", by=By.XPATH)
+            self.click_next_button()
             time.sleep(2)
-            self.click_button("/html/body/div[6]/div[1]/div/div[3]/div/div/div/div/div/div/div/div[1]/div/div/div/div[3]/div", by=By.XPATH)
+            self.click_next_button()
+            # self.click_button("/html/body/div[6]/div[1]/div/div[3]/div/div/div/div/div/div/div/div[1]/div/div/div/div[3]/div", by=By.XPATH)
             
             # キャプションを入力
             with open(caption_file, 'r', encoding='utf-8') as file:
@@ -139,7 +201,8 @@ class InstaAPIV1:
             
             time.sleep(2)
             # 投稿ボタンをクリック
-            self.click_button("/html/body/div[6]/div[1]/div/div[3]/div/div/div/div/div/div/div/div[1]/div/div/div/div[3]/div", by=By.XPATH)
+            # self.click_button("/html/body/div[6]/div[1]/div/div[3]/div/div/div/div/div/div/div/div[1]/div/div/div/div[3]/div", by=By.XPATH)
+            self.click_share_button()
             
             logger.success("投稿が完了しました。")
             time.sleep(20)
@@ -151,10 +214,10 @@ if __name__ == "__main__":
     # InstaAPIV1クラスのインスタンスを作成し、投稿を実行
     insta_api_v1 = InstaAPIV1(
         firefox_binary_path="C:\\Program Files\\Mozilla Firefox\\firefox.exe",
-        firefox_profile_path="C:\\Users\\makim\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\mkeo2nsd.kazami"
+        firefox_profile_path="C:\\Users\\makim\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\q8b2lcl6.Yukihiko"
     )
     insta_api_v1.create_post(
-        image_file="C:\\Users\\makim\\Downloads\\sample2.png",
+        image_file=r"C:\Users\makim\Downloads\Yuki5.webp",
         caption_file="sample.md"
     )
 

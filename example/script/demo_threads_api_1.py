@@ -11,6 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.firefox import GeckoDriverManager
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, StaleElementReferenceException
 import json
+from PIL import Image
 
 from loguru import logger
 from art import *
@@ -31,7 +32,7 @@ class ThreadsAPIV1:
         logger.info("WebDriverを初期化しています...")
         options = Options()
         # ユーザーエージェントの設定
-        options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+        # options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
 
         if headless:
             options.add_argument("--headless")
@@ -100,6 +101,10 @@ class ThreadsAPIV1:
         logger.success(f"{selector} への入力が完了しました。")
         
     def upload_image(self, file_path: str, wait_time: int = 10):
+        
+        # WebPファイルの場合、PNGに変換
+        file_path = self.convert_webp_to_png(file_path)
+        
         logger.info(f"{file_path} をアップロードしています...")
         file_input = self.driver.find_element(By.CSS_SELECTOR, "input[type='file']")
         file_input.send_keys(file_path)
@@ -111,6 +116,15 @@ class ThreadsAPIV1:
             logger.info("WebDriverを閉じています...")
             self.driver.quit()
             logger.success("WebDriverを閉じました。")
+
+    def convert_webp_to_png(self, file_path: str) -> str:
+        if file_path.lower().endswith('.webp'):
+            im = Image.open(file_path).convert("RGBA")
+            png_path = os.path.splitext(file_path)[0] + ".png"
+            im.save(png_path, "PNG")
+            logger.info(f"WebPファイル {file_path} をPNGファイル {png_path} に変換しました。")
+            return png_path
+        return file_path
 
     def create_post(self, image_file: str, caption_file: str, headless: bool = False):
         tprint('>>  ThreadsAPI')
@@ -152,9 +166,9 @@ class ThreadsAPIV1:
 if __name__ == "__main__":
     threads_api_v1 = ThreadsAPIV1(
         firefox_binary_path="C:\\Program Files\\Mozilla Firefox\\firefox.exe",
-        firefox_profile_path="C:\\Users\\makim\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\mkeo2nsd.kazami"
+        firefox_profile_path="C:\\Users\\makim\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\q8b2lcl6.Yukihiko"
     )
     threads_api_v1.create_post(
-        image_file="C:\\Users\\makim\\Downloads\\sample2.png",
+        image_file=r"C:\Users\makim\Downloads\Yuki5.webp",
         caption_file="sample.md"
     )
