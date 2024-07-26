@@ -91,9 +91,10 @@ class NoteAPIV2:
 
         # Firefox のプロファイルパスを設定
         if self.firefox_profile_path:
-            options.add_argument(f"-profile {self.firefox_profile_path}")
+            # options.add_argument(f"-profile {self.firefox_profile_path}")
+            options.profile = webdriver.FirefoxProfile(self.firefox_profile_path)
         elif os.getenv("FIREFOX_PROFILE_PATH"):
-            options.add_argument(f'-profile {os.getenv("FIREFOX_PROFILE_PATH")}')
+            options.profile = webdriver.FirefoxProfile(os.getenv("FIREFOX_PROFILE_PATH"))
 
         logger.debug(f"profile_path : {self.firefox_profile_path}")
         logger.debug(f"firefox_binary : {self.firefox_binary_path}")
