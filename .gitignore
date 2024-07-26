@@ -196,3 +196,13 @@ intermediate_slide_html.html
 intermediate_slide_content.txt
 intermediate_html_content.html
 example/script/landslide/presentation.html
+example/script/landslide/themes/default/css/print.css
+example/script/landslide/themes/default/css/screen.css
+example/script/hovercraft/presentation_video.mp4
+example/script/hovercraft/output/index.html
+example/script/hovercraft/output/css/highlight.css
+example/script/hovercraft/output/css/hovercraft.css
+example/script/hovercraft/output/css/mytheme.css
+example/script/hovercraft/output/js/gotoSlide.js
+example/script/hovercraft/output/js/hovercraft.js
+example/script/hovercraft/output/js/impress.js
