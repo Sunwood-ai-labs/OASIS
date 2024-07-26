@@ -1,0 +1,22 @@
+/* custom_theme.css */
+@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&display=swap');
+
+body {
+    font-family: 'Shippori Mincho', serif;
+    background-color: #f0f0f0;
+    font-size: large;
+}
+
+.step {
+    width: 900px;
+    padding: 40px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+h1, h2, h3 {
+    color: #333;
+}
+
+/* その他のカスタムスタイル */
