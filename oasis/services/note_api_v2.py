@@ -235,6 +235,7 @@ class NoteAPIV2:
         time.sleep(1)
         logger.success("ページのスクロールが完了しました。")
 
+
     def _set_thumbnail(
         self,
         driver: webdriver.Firefox,
