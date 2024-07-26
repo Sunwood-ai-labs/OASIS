@@ -83,21 +83,21 @@ class NoteAPIV2:
         )
         options.set_preference("general.useragent.override", user_agent)
 
-        # Firefox のパスを設定
-        if self.firefox_binary_path:
-            options.binary_location = self.firefox_binary_path
-        elif os.getenv("FIREFOX_BINARY_PATH"):
-            options.binary_location = os.getenv("FIREFOX_BINARY_PATH")
+        # ---------------------------------------------------
+        # Firefox のパスとプロファイルを設定
+        #
+        # Firefox のパスを取得する
+        firefox_binary_path = self.firefox_binary_path or os.getenv("FIREFOX_BINARY_PATH")
+        # Firefox のプロファイルパスを取得する
+        firefox_profile_path = self.firefox_profile_path or os.getenv("FIREFOX_PROFILE_PATH")
+        # Firefox のパスを設定する
+        options.binary_location = firefox_binary_path
+        # Firefox のプロファイルを設定する
+        options.profile = webdriver.FirefoxProfile(firefox_profile_path)
 
-        # Firefox のプロファイルパスを設定
-        if self.firefox_profile_path:
-            # options.add_argument(f"-profile {self.firefox_profile_path}")
-            options.profile = webdriver.FirefoxProfile(self.firefox_profile_path)
-        elif os.getenv("FIREFOX_PROFILE_PATH"):
-            options.profile = webdriver.FirefoxProfile(os.getenv("FIREFOX_PROFILE_PATH"))
-
-        logger.debug(f"profile_path : {self.firefox_profile_path}")
-        logger.debug(f"firefox_binary : {self.firefox_binary_path}")
+        # ログ出力
+        logger.debug(f"profile_path: {firefox_profile_path}")
+        logger.debug(f"firefox_binary: {firefox_binary_path}")
 
         # GeckoDriverManagerを使用してドライバーを管理
         service = Service(GeckoDriverManager().install())
