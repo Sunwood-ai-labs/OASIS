@@ -42,7 +42,8 @@ setup(
         'beautifulsoup4',
         'webdriver_manager',
         'mistune',
-        'html2text'
+        'html2text',
+        'streamlit'
     ],
     entry_points={
         "console_scripts": [
