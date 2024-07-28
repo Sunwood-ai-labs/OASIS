@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="oasis-article",
-    version="0.7.2",
+    version="0.8.0",
     author="Sunwood-ai-labs",
     author_email="sunwood.ai.labs@gmail.com",
     description="WordPressへの投稿を自動化するパッケージ",
@@ -42,7 +42,8 @@ setup(
         'beautifulsoup4',
         'webdriver_manager',
         'mistune',
-        'html2text'
+        'html2text',
+        'streamlit'
     ],
     entry_points={
         "console_scripts": [

@@ -1,24 +1,60 @@
-from .services.file_handler import FileHandler
 
-from .services.wordpress_api import WordPressAPI
-from .services.wordpress_api import convert_markdown_to_html_with_mermaid, convert_html_to_markdown_preserve_mermaid
+try:
+    from .services.file_handler import FileHandler
 
-from .services.llm_api import LLMService
-from .services.qiita_api import QiitaAPI
+    from .services.wordpress_api import WordPressAPI
+    from .services.wordpress_api import convert_markdown_to_html_with_mermaid, convert_html_to_markdown_preserve_mermaid
 
-from .services.note_api_v1 import NoteAPI
-from .services.note_api_v2 import NoteAPIV2, process_markdown_mermaid_blocks
+    from .services.llm_api import LLMService
+    from .services.qiita_api import QiitaAPI
 
-from .services.ZennAPI_v1 import ZennAPI
-from .services.ZennAPI_v2 import ZennAPIV2
+    from .services.note_api_v1 import NoteAPI
+    from .services.note_api_v2 import NoteAPIV2, process_markdown_mermaid_blocks
 
-from .models.post import Post
-from .logger import logger
-from .config import Config
-from .exceptions import APIError
+    from .services.ZennAPI_v1 import ZennAPI
+    from .services.ZennAPI_v2 import ZennAPIV2
+
+    from .models.post import Post
+    from .logger import logger
+    from .config import Config
+    from .exceptions import APIError
+except:
+    from oasis.services.file_handler import FileHandler
+
+    from oasis.services.wordpress_api import WordPressAPI
+    from oasis.services.wordpress_api import convert_markdown_to_html_with_mermaid, convert_html_to_markdown_preserve_mermaid
+
+    from oasis.services.llm_api import LLMService
+    from oasis.services.qiita_api import QiitaAPI
+
+    from oasis.services.note_api_v1 import NoteAPI
+    from oasis.services.note_api_v2 import NoteAPIV2, process_markdown_mermaid_blocks
+
+    from oasis.services.ZennAPI_v1 import ZennAPI
+    from oasis.services.ZennAPI_v2 import ZennAPIV2
+
+    from oasis.models.post import Post
+    from oasis.logger import logger
+    from oasis.config import Config
+    from oasis.exceptions import APIError
+
+import streamlit as st
+from functools import wraps
 from tqdm import tqdm
 import os
 import json
+
+
+def spinner_and_success(message):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            with st.spinner(message):
+                result = func(*args, **kwargs)
+            st.success(f"{message}完了しました！")
+            return result
+        return wrapper
+    return decorator
 
 class OASIS:
     def __init__(
@@ -29,7 +65,7 @@ class OASIS:
         llm_model=None,
         max_retries=3,
         qiita_token=None,
-        qiita_post_private=None,
+        qiita_post_private=True,
         note_email=None,
         note_password=None,
         note_user_id=None,
@@ -106,6 +142,7 @@ class OASIS:
         
         self.firefox_headless = firefox_headless
 
+
     def process_folder(
         self, folder_path: str, 
         post_to_qiita: bool = False, 
@@ -114,119 +151,144 @@ class OASIS:
         post_to_zenn: bool = False, 
         slug = "test_slug", 
     ):
-
+        # FileHandlerのインスタンスを作成
         file_handler = FileHandler(folder_path)
 
-        logger.info("Markdownファイルの読み込みを開始します...")
+        # Markdownファイルを読み込み、内容とタイトルを取得
+        markdown_content, title = self.read_markdown(file_handler)
+        
+        # Note用にMarkdownを前処理
+        note_mermaid_md = self.preprocess_for_note(markdown_content)
+        
+        # サムネイル画像を検索
+        thumbnail_path = self.find_thumbnail(file_handler)
+        
+        # カテゴリとタグの情報を読み込みまたは取得
+        category_map, tag_map = self.load_or_fetch_categories_and_tags(post_to_wp)
+        
+        # 記事のスラグ（URL用の識別子）を生成
+        slug = self.generate_slug(title)
+        
+        # 記事のカテゴリとタグを提案
+        suggestions = self.suggest_categories_and_tags(markdown_content, category_map, tag_map)
+        
+        # 投稿用のPostオブジェクトを作成
+        post = self.create_post(title, markdown_content, slug, suggestions)
+        
+        # WordPressに投稿
+        if post_to_wp:
+            self.post_to_wordpress(post, thumbnail_path)
+        
+        # Qiitaに投稿
+        if post_to_qiita:
+            self.post_to_qiita(post)
+        
+        # Noteに投稿
+        if post_to_note:
+            self.post_to_note(post, note_mermaid_md)
+        
+        # Zennに投稿
+        if post_to_zenn:
+            self.post_to_zenn(post, thumbnail_path)
+
+        logger.info("投稿処理が正常に完了しました。")
+        return post.to_dict()
+
+
+    @spinner_and_success('Markdownファイルを読み込んでいます...')
+    def read_markdown(self, file_handler):
         markdown_content, title = file_handler.read_markdown()
         logger.info(f"Markdownファイルの読み込みが完了しました: タイトル '{title}'")
-                
-        # Note用に前処理
-        note_mermaid_md = process_markdown_mermaid_blocks(markdown_content)
+        return markdown_content, title
 
-        logger.info("サムネイル画像の検索を開始します...")
+    @spinner_and_success('Noteのための前処理を行っています...')
+    def preprocess_for_note(self, markdown_content):
+        return process_markdown_mermaid_blocks(markdown_content)
+
+    @spinner_and_success('サムネイル画像を検索しています...')
+    def find_thumbnail(self, file_handler):
         thumbnail_path = file_handler.get_thumbnail()
         if thumbnail_path:
             logger.info(f"サムネイル画像が見つかりました: {thumbnail_path}")
         else:
             logger.info("サムネイル画像が見つかりませんでした。")
+        return thumbnail_path
 
-        # Create a folder to store JSON files
+    @spinner_and_success('カテゴリとタグを読み込み/取得しています...')
+    def load_or_fetch_categories_and_tags(self, post_to_wp):
         json_folder = os.path.join("data", "wp_data")
         os.makedirs(json_folder, exist_ok=True)
-
         category_map_path = os.path.join(json_folder, "category_map.json")
         tag_map_path = os.path.join(json_folder, "tag_map.json")
 
-        slug = self.llm_service.generate_english_slug(title)
-        
         if post_to_wp:
-            logger.info("既存のカテゴリとタグの取得を開始します...")
             category_map, tag_map = self.wp_api.get_existing_categories_and_tags()
-
-            # Save category_map and tag_map to JSON files
             with open(category_map_path, 'w', encoding="utf-8") as f:
                 json.dump(category_map, f, ensure_ascii=False, indent=4)
             with open(tag_map_path, 'w', encoding="utf-8") as f:
                 json.dump(tag_map, f, ensure_ascii=False, indent=4)
-
-            logger.info("英語のスラグ生成を開始します...")
-            
-            logger.info(f"英語のスラグ生成が完了しました: {slug}")
         else:
-            # Load category_map and tag_map from JSON files if they exist
-            if os.path.exists(category_map_path):
-                with open(category_map_path, 'r', encoding="utf-8") as f:
-                    category_map = json.load(f)
-            else:
-                category_map = {}
+            category_map = json.load(open(category_map_path, 'r', encoding="utf-8")) if os.path.exists(category_map_path) else {}
+            tag_map = json.load(open(tag_map_path, 'r', encoding="utf-8")) if os.path.exists(tag_map_path) else {}
 
-            if os.path.exists(tag_map_path):
-                with open(tag_map_path, 'r', encoding="utf-8") as f:
-                    tag_map = json.load(f)
-            else:
-                tag_map = {}
+        return category_map, tag_map
 
-        logger.info("カテゴリとタグの提案を開始します...")
+    @spinner_and_success('英語のスラグを生成しています...')
+    def generate_slug(self, title):
+        slug = self.llm_service.generate_english_slug(title)
+        logger.info(f"英語のスラグ生成が完了しました: {slug}")
+        return slug
+
+    @spinner_and_success('カテゴリとタグを提案しています...')
+    def suggest_categories_and_tags(self, markdown_content, category_map, tag_map):
         suggestions = self.llm_service.suggest_categories_and_tags(
             markdown_content, category_map.keys(), tag_map.keys()
         )
         logger.info(
             f"カテゴリとタグの提案が完了しました: カテゴリ {len(suggestions['categories'])}, タグ {len(suggestions['tags'])}"
         )
+        return suggestions
 
-        
-        post = Post(
+    def create_post(self, title, markdown_content, slug, suggestions):
+        return Post(
             title, markdown_content, slug, suggestions['categories'], suggestions['tags']
         )
-        
-        if post_to_wp:
-            logger.info("WordPressへの投稿を開始します...")
-            post_id = self.wp_api.create_post(post)
-            logger.info(f"WordPressへの投稿が完了しました: ID {post_id}")
 
-            if thumbnail_path:
-                logger.info("サムネイル画像のアップロードを開始します...")
-                self.wp_api.upload_thumbnail(post_id, thumbnail_path)
-                logger.info("サムネイル画像のアップロードが完了しました。")
+    @spinner_and_success('WordPressに投稿しています...')
+    def post_to_wordpress(self, post, thumbnail_path):
+        post_id = self.wp_api.create_post(post)
+        logger.info(f"WordPressへの投稿が完了しました: ID {post_id}")
 
-        if post_to_qiita and self.config.QIITA_TOKEN:
-            logger.info("Qiitaへの投稿を開始します...")
+        if thumbnail_path:
+            logger.info("サムネイル画像のアップロードを開始します...")
+            self.wp_api.upload_thumbnail(post_id, thumbnail_path)
+            logger.info("サムネイル画像のアップロードが完了しました。")
+
+    @spinner_and_success('Qiitaに投稿しています...')
+    def post_to_qiita(self, post):
+        if self.config.QIITA_TOKEN:
             qiita_post_id = self.qiita_api.create_post(post)
             logger.info(f"Qiitaへの投稿が完了しました: ID {qiita_post_id}")
 
-        if post_to_note and hasattr(self, 'note_api'):
-            logger.info("Noteへの投稿を開始します...")
+    @spinner_and_success('Noteに投稿しています...')
+    def post_to_note(self, post, note_mermaid_md):
+        if hasattr(self, 'note_api'):
             tags = [tag["name"] for tag in post.tags]
-            note_result = self.note_api.create_article(title, tags, text=note_mermaid_md, headless=self.firefox_headless, post_setting=self.note_publish)
+            note_result = self.note_api.create_article(post.title, tags, text=note_mermaid_md, headless=self.firefox_headless, post_setting=self.note_publish)
             logger.info(f"Noteへの投稿が完了しました: {note_result}")
-        
-        if post_to_zenn:
-            tags = [tag["name"] for tag in post.tags]
-            # 記事を作成または編集
-            # self.zenn_api.create_article(
-            #     title=post.title,
-            #     # content_file="memo.md",
-            #     content_md=post.content,
-            #     image_file=thumbnail_path,
-            #     headless=self.firefox_headless,
-            #     # draft_url="https://zenn.dev/articles/8bca383aea6243/edit",
-            #     tags=tags[:4]
-            # )
-            
-            self.zenn_api_v2.create_article(
-                title=post.title,
-                slug=post.slug,
-                content_md=post.content,  # post.contentが記事の本文を含んでいると仮定
-                type="tech",  # または "idea"（コンテンツに応じて）
-                topics=tags[:4],
-                image_file=thumbnail_path,
-                output_dir=self.zenn_output_path
-            )
 
-        logger.info("投稿処理が正常に完了しました。")
-        return post.to_dict()
-
+    @spinner_and_success('Zennに投稿しています...')
+    def post_to_zenn(self, post, thumbnail_path):
+        tags = [tag["name"] for tag in post.tags]
+        self.zenn_api_v2.create_article(
+            title=post.title,
+            slug=post.slug,
+            content_md=post.content,
+            type="tech",
+            topics=tags[:4],
+            image_file=thumbnail_path,
+            output_dir=self.zenn_output_path
+        )
 
     def set_llm_model(self, model: str):
         self.config.LLM_MODEL = model

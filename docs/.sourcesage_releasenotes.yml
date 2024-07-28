@@ -1,15 +1,15 @@
 ss-mode:
  - DocuMind
-docuMind-model: "gpt-4o-mini"
+docuMind-model: "gemini/gemini-1.5-pro-latest"
 docuMind-db: ".SourceSageAssets/DOCUMIND/Repository_summary.md"
-docuMind-release-report: ".SourceSageAssets/RELEASE_REPORT/Report_v0.7.0.md"
+docuMind-release-report: ".SourceSageAssets/RELEASE_REPORT/Report_v0.8.0.md"
 docuMind-changelog: ".SourceSageAssets/Changelog/CHANGELOG_main.md"
-docuMind-output: ".SourceSageAssets/DOCUMIND/RELEASE_NOTES_v0.7.0.md"
-docuMind-prompt-output: ".SourceSageAssets/DOCUMIND/_PROMPT_v0.7.0.md"
+docuMind-output: ".SourceSageAssets/DOCUMIND/RELEASE_NOTES_v0.8.0.md"
+docuMind-prompt-output: ".SourceSageAssets/DOCUMIND/_PROMPT_v0.8.0.md"
 repo-name: "OASIS"
-repo-version: "v0.7.0"
+repo-version: "v0.8.0"
 
 # changelog-start-tag: "v0.1.0"
-# changelog-end-tag: "v0.7.0"
+# changelog-end-tag: "v0.8.0"
 # aira --mode sourcesage --ss-mode=DocuMind --yaml-file=docs\.sourcesage_releasenotes.yml
 # sourcesage --ss-mode=DocuMind --yaml-file=docs\.sourcesage_releasenotes.yml
