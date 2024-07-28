@@ -47,6 +47,7 @@ class QiitaAPI:
             if response.status_code != 201:
                 logger.error(f"Qiita投稿の作成に失敗しました。ステータスコード: {response.status_code}")
                 logger.error(f"レスポンス: {response.text}")
+                logger.error(f"token: {self.token[:4]}")
                 self.save_error_payload(payload, response)
                 raise APIError(f"Qiita投稿の作成に失敗しました。ステータスコード: {response.status_code}")
             
