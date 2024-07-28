@@ -64,6 +64,7 @@ published: false
 """
 
         # 出力ディレクトリが存在しない場合は作成
+        logger.debug(f"output_dir: {output_dir}")
         os.makedirs(output_dir, exist_ok=True)
         logger.info(f"出力ディレクトリを確認/作成しました: {output_dir}")
 
