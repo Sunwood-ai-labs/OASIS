@@ -4,6 +4,7 @@ from .oasis import OASIS
 from .config import Config
 from .logger import logger
 from art import *
+import os
 
 def main():
     tprint(">>  OASIS  <<", font="rnd-xlarge")
@@ -12,7 +13,7 @@ def main():
     )
 
     # main
-    parser.add_argument('folder_path', type=str, help='処理するフォルダのパス')
+    parser.add_argument('--folder_path', type=str, help='処理するフォルダのパス')
 
     # llm
     parser.add_argument('--llm-model', type=str, help='使用するLLMモデル')
@@ -52,7 +53,19 @@ def main():
     parser.add_argument('--firefox-profile-path', type=str, help='使用する Firefox プロファイルへのパス')
     parser.add_argument('--firefox-headless', action='store_true', help='Firefoxのヘッドレスモード')
 
+    # Streamlitアプリオプション
+    parser.add_argument('-app', '--streamlit-app', action='store_true', help='Streamlitアプリケーションを起動する')
+
     args = parser.parse_args()
+
+    if args.streamlit_app:
+        import streamlit.web.cli as stcli
+        oasis_app_path = os.path.join(os.path.dirname(__file__), 'app/oasis_app.py')
+        sys.argv = ["streamlit", "run", oasis_app_path, "--"]
+        sys.exit(stcli.main())
+
+    if not args.folder_path and not args.streamlit_app:
+        parser.error("folder_path is required unless --streamlit-app is specified")
 
     oasis = OASIS(
         base_url=args.wp_url or Config.BASE_URL,
@@ -72,6 +85,7 @@ def main():
         firefox_headless=args.firefox_headless,
         zenn_output_path=args.zenn_output_path
     )
+    
     logger.info(
         f"使用中のLLMモデル: {oasis.config.LLM_MODEL}, 最大リトライ回数: {args.max_retries}"
     )
@@ -91,7 +105,6 @@ def main():
     logger.info(">>> tags :")
     for tag in result['tags']:
         logger.info(f"- {tag['name']} (ID: {tag['slug']})")
-
 
 
 if __name__ == '__main__':
