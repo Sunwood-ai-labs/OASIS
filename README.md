@@ -38,16 +38,21 @@ OASISは、MarkdownファイルからWordPress, Qiita, Note, Zennへの投稿を
 
 ## 更新情報 
 
-- **v0.7.0**: 
-  - Zennへのクロス投稿機能を追加しました([ZennAPI V2](oasis/services/ZennAPI_v2.py))。 
-  - WordPressとNoteにおけるMermaid図のレンダリングに対応しました。
-  - 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.7.0)をご覧ください。
+- **v0.8.0**: 
+  - StreamlitベースのWeb UIを追加しました。
+  - コマンドラインインターフェースを改善し、Streamlitアプリケーション起動オプションを追加しました。
+  - AI関連の新しいカテゴリとタグを追加しました。
+  - 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.8.0)をご覧ください。
 
 <details>
   <summary>過去の更新情報はこちら</summary>
 
   ---
 
+- **v0.7.0**: 
+  - Zennへのクロス投稿機能を追加しました。 
+  - WordPressとNoteにおけるMermaid図のレンダリングに対応しました。
+  - 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.7.0)をご覧ください。
 - **v0.6.0**: 
   - Zennへのクロス投稿機能を追加しました。 
   - WordPressとNoteにおけるMermaid図のレンダリングに対応しました。
@@ -67,7 +72,13 @@ OASISは、MarkdownファイルからWordPress, Qiita, Note, Zennへの投稿を
 
 ## デモ
 
+### CLI デモ
+
 https://github.com/user-attachments/assets/742c5822-04ec-4f9b-98fb-42fc3a101ab6
+
+### Web UI デモ
+
+https://github.com/user-attachments/assets/ff0a2099-dcd0-4fe5-b60b-ded3f2f55fe4
 
 ## はじめに
 
@@ -84,11 +95,12 @@ pip install -U oasis-article
 ### コマンドラインから使用する場合:
 
 ```bash
-oasis /path/to/your/folder
+oasis --folder_path /path/to/your/folder
 ```
 
 #### オプション
 
+- `--folder_path`: 処理するフォルダのパス
 - `--qiita`: Qiitaにも投稿する
 - `--note`: Noteにも投稿する
 - `--wp`: WordPressにも投稿する
@@ -105,12 +117,13 @@ oasis /path/to/your/folder
 - `--firefox-profile-path`: 使用する Firefox プロファイルへのパス
 - `--firefox-headless`: Firefoxのヘッドレスモード
 - `--zenn-output-path`: ZennAPI V2で記事ファイルを生成する出力フォルダ
+- `-app`, `--streamlit-app`: StreamlitベースのWeb UIを起動する
 
 例：
 
 ```bash
-oasis example\article\roomba01 --qiita --note --wp --zenn --firefox-headless
-oasis article_draft\21_Hunk --qiita --note --wp --zenn --firefox-headless
+oasis --folder_path example\article\roomba01 --qiita --note --wp --zenn --firefox-headless
+oasis --folder_path article_draft\21_Hunk --qiita --note --wp --zenn --firefox-headless
 ```
 
 ### Pythonスクリプトから使用する場合:
@@ -121,6 +134,18 @@ from oasis import OASIS
 oasis = OASIS()
 result = oasis.process_folder("/path/to/your/folder", post_to_qiita=True, post_to_note=True, post_to_wp=True, post_to_zenn=True)  # Qiita, Note, WordPress, Zennへの投稿も行う場合
 print(result)
+```
+
+### Web UIを使用する場合:
+
+```bash
+oasis -app
+```
+
+または
+
+```bash
+oasis --streamlit-app
 ```
 
 ## 設定
@@ -167,4 +192,3 @@ OASISの開発にご協力いただける方は、GitHubリポジトリにアク
 OASISの開発にあたり、多大な貢献をしていただいた方々に感謝申し上げます。
 
 - Note APIの開発は [Mr-SuperInsane/NoteClient](https://github.com/Mr-SuperInsane/NoteClient) を参考にさせていただきました。
-```
