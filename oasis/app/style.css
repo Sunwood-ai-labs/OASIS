@@ -1,0 +1,97 @@
+/* OASIS theme colors */
+:root {
+    --oasis-primary: #20B2AA;  /* Light Sea Green (Turquoise) */
+    --oasis-secondary: #F4A460;  /* Sandy Brown */
+    --oasis-accent: #FFD700;  /* Gold */
+    --oasis-text: #2F4F4F;  /* Dark Slate Gray */
+    --oasis-background: #F0F8FF;  /* Alice Blue */
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--oasis-background);
+    color: var(--oasis-text);
+}
+
+.dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header img {
+    margin-right: 20px;
+}
+
+.header h1 {
+    color: var(--oasis-primary);
+    margin: 0;
+}
+
+.welcome-text {
+    font-size: 18px;
+    color: var(--oasis-text);
+    margin-bottom: 30px;
+}
+
+.card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid var(--oasis-primary);
+}
+
+/* Streamlit button styling */
+.stButton > button {
+    background-color: var(--oasis-primary);
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    transition-duration: 0.3s;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stButton > button:hover {
+    background-color: var(--oasis-secondary);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.stButton > button:active {
+    background-color: var(--oasis-accent);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    transform: translateY(1px);
+}
+
+/* Style for other Streamlit components */
+.stTextInput > div > div > input {
+    border-color: var(--oasis-primary);
+    color: var(--oasis-text);
+}
+
+.stMultiSelect > div > div > div {
+    border-color: var(--oasis-primary);
+}
+
+.stExpander {
+    border-left-color: var(--oasis-primary);
+}
+
+/* Hide default Streamlit elements */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
