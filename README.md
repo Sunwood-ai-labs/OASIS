@@ -40,6 +40,9 @@ OASISは、MarkdownファイルからWordPress, Qiita, Note, Zennへの投稿を
 
 ## 更新情報 
 
+- **v0.9.3**: 
+  - 英語READMEの更新と、コマンドラインオプションの説明の改善
+  - 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.9.3)をご覧ください。
 - **v0.9.2**: 
   - Zenn API V2 への公開設定機能、Instagram自動投稿機能(実験的機能)の強化、新しいタグの追加、README翻訳のワークフロー、およびその他の改善が含まれています。
   - 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.9.2)をご覧ください。
@@ -219,3 +222,4 @@ OASISの開発にあたり、多大な貢献をしていただいた方々に感
 - Note APIの開発は [Mr-SuperInsane/NoteClient](https://github.com/Mr-SuperInsane/NoteClient) を参考にさせていただきました。
 
 </readme>
+```
