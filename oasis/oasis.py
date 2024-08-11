@@ -75,7 +75,8 @@ class OASIS:
         firefox_headless=False,
         note_api_ver = "v2",
         zenn_api_ver = "v2",
-        zenn_output_path = None
+        zenn_output_path = None,
+        zenn_publish: bool = False  # Zenn 公開設定を追加
     ):
         self.config = Config()
         if base_url:
@@ -139,6 +140,7 @@ class OASIS:
         )
         self.zenn_api_v2 = ZennAPIV2()
         self.zenn_output_path = zenn_output_path
+        self.zenn_publish = zenn_publish  # Zenn 公開設定を保存
         
         self.firefox_headless = firefox_headless
 
@@ -286,6 +288,7 @@ class OASIS:
             content_md=post.content,
             type="tech",
             topics=tags[:4],
+            published=self.zenn_publish,  # 公開設定を渡す
             image_file=thumbnail_path,
             output_dir=self.zenn_output_path
         )

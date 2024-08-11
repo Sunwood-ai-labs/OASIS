@@ -5,6 +5,13 @@ from typing import List, Optional
 from loguru import logger
 from art import *
 
+import os
+import random
+import re
+from typing import List, Optional
+from loguru import logger
+from art import *
+
 class ZennAPIV2:
     def __init__(self):
         logger.info("ZennAPIV2 インスタンスを初期化しています...")
@@ -38,6 +45,7 @@ class ZennAPIV2:
                        emoji: Optional[str] = None,
                        type: str = "tech",
                        topics: List[str] = ["Python", "Selenium", "自動化"],
+                       published: bool = False,  # 公開設定を追加
                        image_file: Optional[str] = None,
                        output_dir: str = "articles"):
         tprint('>>  ZennAPI V2')
@@ -57,7 +65,7 @@ title: "{title}"
 emoji: "{emoji}"
 type: "{type}"
 topics: {str(topics)}
-published: false
+published: {published}  # 公開設定を使用
 ---
 
 {converted_content.strip()}
