@@ -102,31 +102,52 @@ pip install -U oasis-article
 oasis --folder_path /path/to/your/folder
 ```
 
-#### オプション
+### オプション
 
-- `--folder_path`: 処理するフォルダのパス
+OASISは多数のオプションを提供し、様々な設定や機能をカスタマイズできます。以下は主要なオプションの一覧です：
+
+#### 基本オプション
+- `--folder_path`: 処理するフォルダのパス（必須）
+- `-app`, `--streamlit-app`: StreamlitベースのWeb UIを起動する
+
+#### 投稿先の指定
 - `--qiita`: Qiitaにも投稿する
 - `--note`: Noteにも投稿する
 - `--wp`: WordPressにも投稿する
 - `--zenn`: Zennにも投稿する
+
+#### WordPress設定
 - `--wp-user`: WordPressのユーザー名
 - `--wp-pass`: WordPressのパスワード
 - `--wp-url`: WordPressのURL
+
+#### Qiita設定
 - `--qiita-token`: QiitaのAPIトークン
+- `--qiita-post-publish`: Qiitaの記事を公開設定で投稿する（指定しない場合は非公開で投稿）
+
+#### Note設定
 - `--note-email`: Noteのメールアドレス
 - `--note-password`: Noteのパスワード
 - `--note-user-id`: NoteのユーザーID
 - `--note-publish`: Noteに公開投稿する(指定しない場合は下書き保存)
+
+#### Zenn設定
+- `--zenn-output-path`: ZennAPI V2で記事ファイルを生成する出力フォルダ
+- `--zenn-publish`: ZennAPI V2で記事を公開設定にする
+
+#### Firefox設定
 - `--firefox-binary-path`: Firefox の実行ファイルへのパス
 - `--firefox-profile-path`: 使用する Firefox プロファイルへのパス
 - `--firefox-headless`: Firefoxのヘッドレスモード
-- `--zenn-output-path`: ZennAPI V2で記事ファイルを生成する出力フォルダ
-- `-app`, `--streamlit-app`: StreamlitベースのWeb UIを起動する
 
-例：
+#### その他
+- `--llm-model`: 使用するLLMモデル
+- `--max-retries`: LLMリクエストの最大リトライ回数
+
+### 使用例
 
 ```bash
-oasis --folder_path example\article\roomba01 --qiita --note --wp --zenn --firefox-headless
+oasis --folder_path example\article\roomba01 --qiita --qiita-post-publish --note --wp --zenn --firefox-headless
 oasis --folder_path article_draft\21_Hunk --qiita --note --wp --zenn --firefox-headless
 ```
 
