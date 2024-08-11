@@ -26,7 +26,9 @@
   <a href="https://x.com/hAru_mAki_ch"><b>[ Twitter ]</b></a> •
   <a href="https://hamaruki.com/"><b>[ Official Blog ]</b></a>
 </p>
-
+   <br>
+   <a href="https://github.com/Sunwood-ai-labs/OASIS/blob/main/README.md"><img src="https://img.shields.io/badge/ドキュメント-日本語-white.svg" alt="JA doc"/></a>
+   <a href="https://github.com/Sunwood-ai-labs/OASIS/blob/main/docs/README.en.md"><img src="https://img.shields.io/badge/english-document-white.svg" alt="EN doc"></a>
 </h2>
 
 </p>
@@ -37,6 +39,10 @@
 OASISは、MarkdownファイルからWordPress, Qiita, Note, Zennへの投稿を自動化するPythonパッケージです。 
 
 ## 更新情報 
+
+- **v0.9.2**: 
+  - Zenn API V2 への公開設定機能、Instagram自動投稿機能(実験的機能)の強化、新しいタグの追加、README翻訳のワークフロー、およびその他の改善が含まれています。
+  - 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.9.2)をご覧ください。
 
 - **v0.8.0**: 
   - StreamlitベースのWeb UIを追加しました。
@@ -192,3 +198,5 @@ OASISの開発にご協力いただける方は、GitHubリポジトリにアク
 OASISの開発にあたり、多大な貢献をしていただいた方々に感謝申し上げます。
 
 - Note APIの開発は [Mr-SuperInsane/NoteClient](https://github.com/Mr-SuperInsane/NoteClient) を参考にさせていただきました。
+
+</readme>
