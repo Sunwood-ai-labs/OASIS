@@ -47,6 +47,7 @@ def main():
     # parser.add_argument('--qiita-token', type=str, help='QiitaのAPIトークン')
     # parser.add_argument('--qiita-post-publish', action='store_true', help='Qiitaの公開設定')
     parser.add_argument('--zenn-output-path', default=r"C:\Prj\Zenn\articles", help='ZennAPI V2の出力フォルダ')
+    parser.add_argument('--zenn-publish', action='store_true', help='ZennAPI V2で記事を公開設定にする') 
 
     # Firefox 設定
     parser.add_argument('--firefox-binary-path', type=str, help='Firefox の実行ファイルへのパス')
@@ -83,7 +84,8 @@ def main():
         firefox_binary_path=args.firefox_binary_path,  # Firefox のパス
         firefox_profile_path=args.firefox_profile_path,  # Firefox のプロファイルパス
         firefox_headless=args.firefox_headless,
-        zenn_output_path=args.zenn_output_path
+        zenn_output_path=args.zenn_output_path,
+        zenn_publish=args.zenn_publish
     )
     
     logger.info(
