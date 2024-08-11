@@ -44,17 +44,15 @@ OASISは、MarkdownファイルからWordPress, Qiita, Note, Zennへの投稿を
   - Zenn API V2 への公開設定機能、Instagram自動投稿機能(実験的機能)の強化、新しいタグの追加、README翻訳のワークフロー、およびその他の改善が含まれています。
   - 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.9.2)をご覧ください。
 
+<details>
+  <summary>過去の更新情報はこちら</summary>
+
+  ---
 - **v0.8.0**: 
   - StreamlitベースのWeb UIを追加しました。
   - コマンドラインインターフェースを改善し、Streamlitアプリケーション起動オプションを追加しました。
   - AI関連の新しいカテゴリとタグを追加しました。
   - 詳しくは[リリースノート](https://github.com/Sunwood-ai-labs/OASIS/releases/tag/v0.8.0)をご覧ください。
-
-<details>
-  <summary>過去の更新情報はこちら</summary>
-
-  ---
-
 - **v0.7.0**: 
   - Zennへのクロス投稿機能を追加しました。 
   - WordPressとNoteにおけるMermaid図のレンダリングに対応しました。
