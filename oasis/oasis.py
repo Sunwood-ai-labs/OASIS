@@ -3,7 +3,6 @@ try:
     from .services.file_handler import FileHandler
 
     from .services.wordpress_api import WordPressAPI
-    from .services.wordpress_api import convert_markdown_to_html_with_mermaid, convert_html_to_markdown_preserve_mermaid
 
     from .services.llm_api import LLMService
     from .services.qiita_api import QiitaAPI
@@ -22,7 +21,6 @@ except:
     from oasis.services.file_handler import FileHandler
 
     from oasis.services.wordpress_api import WordPressAPI
-    from oasis.services.wordpress_api import convert_markdown_to_html_with_mermaid, convert_html_to_markdown_preserve_mermaid
 
     from oasis.services.llm_api import LLMService
     from oasis.services.qiita_api import QiitaAPI
