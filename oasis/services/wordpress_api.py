@@ -9,6 +9,12 @@ import html
 import os
 from bs4 import BeautifulSoup, Comment
 
+import re
+import markdown
+from bs4 import BeautifulSoup
+from loguru import logger
+
+
 try:
     from ..logger import logger
     from ..exceptions import APIError
@@ -58,14 +64,13 @@ class WordPressAPI:
     def create_post(self, post):
         tprint('>>  WordPressAPI')
         
-        # wp 用に前処理
-        mermaid_html = convert_markdown_to_html_with_mermaid(post.content)
-        mermaid_md = convert_html_to_markdown_preserve_mermaid(mermaid_html)
+        # マークダウンのMermaidブロックをWordPress用に変換
+        processed_content = convert_markdown_with_mermaid(post.content)
 
         try:
             payload = {
                 'title': post.title,
-                'content': mermaid_md,
+                'content': processed_content,
                 'status': 'draft',
                 'slug': post.slug,
                 'categories': [self._create_or_get_term(cat, 'categories') for cat in post.categories],
@@ -179,117 +184,177 @@ class WordPressAPI:
             page += 1
         return items
 
-
-
-def convert_markdown_to_html_with_mermaid(markdown_text, output_dir='debug_output'):
-    # 出力ディレクトリの作成
-    os.makedirs(output_dir, exist_ok=True)
-
-    # マークダウンをHTMLに変換（コードブロックのサポート付き）
-    html = markdown.markdown(markdown_text, extensions=['fenced_code'])
+def convert_code_blocks(markdown_text, debug_html_path=None):
+    """
+    Markdownのコードブロックを適切な形式に変換する
+    言語指定のないコードブロックにbashを追加する
     
-    # 変換前のHTMLを保存
-    with open(os.path.join(output_dir, 'before_conversion.html'), 'w', encoding='utf-8') as f:
-        f.write(html)
+    Args:
+        markdown_text (str): 変換するMarkdownテキスト
+        debug_html_path (str, optional): デバッグ用HTMLを保存するパス
+        
+    Returns:
+        str: 変換後のテキスト
+    """
+    import re
+    import markdown
+    from bs4 import BeautifulSoup
+    from loguru import logger
+    logger.info("convert_code_blocks 関数を開始します")
+    logger.debug(f"入力されたマークダウンの長さ: {len(markdown_text)} 文字")
     
-    # BeautifulSoupを使用してHTMLを解析
+    # マークダウン内のコードブロック数をカウント（簡易的な方法）
+    md_code_blocks_count = markdown_text.count("```")
+    logger.debug(f"マークダウン内のコードブロック区切り文字 (```) の数: {md_code_blocks_count}")
+    
+    # Step 1: マークダウンをHTMLに変換
+    logger.info("マークダウンをHTMLに変換します")
+    html = markdown.markdown(markdown_text, extensions=['fenced_code', 'tables', 'nl2br'])
+    
+    # デバッグ用: HTMLを保存
+    if debug_html_path:
+        with open(debug_html_path, 'w', encoding='utf-8') as f:
+            f.write(html)
+        logger.info(f"HTMLをファイル {debug_html_path} に保存しました")
+    
+    # Step 2: BeautifulSoupでHTMLを解析
+    logger.info("HTMLをBeautifulSoupで解析します")
     soup = BeautifulSoup(html, 'html.parser')
     
-    # BeautifulSoupのバージョンとパーサーを出力
-    # print(f"Parser being used: {soup.parser}")
-
-    # すべてのcodeタグを検索
-    for code_block in soup.find_all('code'):
-        # classが'language-mermaid'を含む場合のみ処理
-        if code_block.has_attr('class') and 'language-mermaid' in code_block['class']:
-            # 親のpreタグを新しい構造で置換
-            new_block = soup.new_tag('div')
-            new_block['class'] = 'wp-block-wp-mermaid-block mermaid'
-            new_block.string = code_block.string
-            
-            wrapper = soup.new_tag('div')
-            # Comment オブジェクトを直接作成
-            wrapper.append(Comment(' wp:wp-mermaid/block '))
-            wrapper.append(new_block)
-            wrapper.append(Comment(' /wp:wp-mermaid/block '))
-            
-            code_block.parent.replace_with(wrapper)
+    # Step 3: コードブロックを見つける
+    code_blocks = soup.find_all('code')
+    logger.info(f"HTML内のcodeタグの総数: {len(code_blocks)}")
     
-    # 変換後のHTMLを保存
-    converted_html = str(soup)
-    with open(os.path.join(output_dir, 'after_conversion.html'), 'w', encoding='utf-8') as f:
-        f.write(converted_html)
-
-    return converted_html
-
-def convert_html_to_markdown_preserve_mermaid(html_content):
-    # Mermaidブロック、blockquote、Twitter埋め込み、コードブロックを一時的にプレースホルダーに置き換え
-    special_blocks = []
-    patterns = [
-        r'(<!-- wp:wp-mermaid/block -->.*?<!-- /wp:wp-mermaid/block -->)',
-        r'(<blockquote class="twitter-tweet".*?</blockquote>)',
-        r'(<blockquote>.*?</blockquote>)',
-        r'(<script async src="https://platform\.twitter\.com/widgets\.js" charset="utf-8"></script>)',
-        r'(<pre><code.*?>.*?</code></pre>)'
-    ]
+    # 言語指定のあるブロックと言語指定のないブロックをカウント
+    lang_blocks = []
+    no_lang_blocks = []
     
-    def replace_special_block(match):
-        block = match.group(1)
-        if block.startswith('<pre><code'):
-            # コードブロックの処理
-            soup = BeautifulSoup(block, 'html.parser')
-            code_block = soup.find('code')
-            
-            # 言語情報を取得
-            language = ''
-            if code_block.has_attr('class'):
-                classes = code_block['class']
-                language_class = next((c for c in classes if c.startswith('language-')), None)
-                if language_class:
-                    language = language_class.split('-')[1]
-            
-            # コードの内容を取得し、HTMLエンティティをデコード
-            code_content = html.unescape(code_block.string)
-            
-            # マークダウン形式のコードブロックを作成
-            markdown_code = f"```{language}\n{code_content}\n```"
-            special_blocks.append(markdown_code)
+    for code in code_blocks:
+        if code.get('class'):
+            lang_blocks.append(code)
+            logger.debug(f"言語指定あり: {code.get('class')} - 内容の一部: {code.text[:20]}...")
         else:
-            special_blocks.append(block)
-        return f'__SPECIAL_BLOCK_PLACEHOLDER_{len(special_blocks) - 1}__'
-
-
-    with open("html_content.html", 'w', encoding='utf-8') as file:
-        file.write(html_content)    
-    html_with_placeholders = html_content
-
-    for pattern in patterns:
-        html_with_placeholders = re.sub(pattern, replace_special_block, html_with_placeholders, flags=re.DOTALL)
+            no_lang_blocks.append(code)
+            logger.debug(f"言語指定なし - 内容の一部: {code.text[:20]}...")
     
-    with open("html_with_placeholders.html", 'w', encoding='utf-8') as file:
-        file.write(html_with_placeholders)
+    logger.info(f"言語指定のあるコードブロック: {len(lang_blocks)}個")
+    logger.info(f"言語指定のないコードブロック: {len(no_lang_blocks)}個")
+    
+    # Step 4: 言語指定のないコードブロックをマークダウンで探して置換
+    replacements_made = 0
+    result_text = markdown_text
+    
+    for code_block in no_lang_blocks:
+        code_content = code_block.text
+        logger.debug(f"変換対象のコードブロック: {code_content[:30]}...")
         
-    # HTMLをマークダウンに変換
-    h = html2text.HTML2Text()
-    h.body_width = 0  # 行の折り返しを無効化
-    markdown_text = h.handle(html_with_placeholders)
-    
-    with open("markdown_text.md", 'w', encoding='utf-8') as file:
-        file.write(markdown_text)
+        # エスケープして正規表現で安全に使用
+        escaped_content = re.escape(code_content)
         
-    # プレースホルダーを特殊ブロックに戻す
-    for i, block in enumerate(special_blocks):
-        print("----------------")
-        print(i)
-        print(block)
-        markdown_text = markdown_text.replace(f'__SPECIAL_BLOCK_PLACEHOLDER_{i}__', block + "\n")
+        # 対応するマークダウンブロックを探す
+        # まず完全一致を試す
+        exact_pattern = r'```\s*\n' + escaped_content + r'\s*\n```'
+        match_found = False
+        
+        old_text = result_text
+        result_text = re.sub(exact_pattern, f'```bash\n{code_content}\n```', result_text)
+        
+        if old_text != result_text:
+            replacements_made += 1
+            match_found = True
+            logger.debug(f"完全一致パターンで置換されました（{replacements_made}件目）")
+        
+        # 完全一致しなかった場合、コードの先頭部分だけで検索
+        if not match_found and len(code_content) > 10:
+            prefix = re.escape(code_content[:min(30, len(code_content))])
+            approx_pattern = r'```\s*\n' + prefix + r'[\s\S]*?\n```'
+            
+            old_text = result_text
+            result_text = re.sub(approx_pattern, f'```bash\n{code_content}\n```', result_text)
+            
+            if old_text != result_text:
+                replacements_made += 1
+                match_found = True
+                logger.debug(f"先頭一致パターンで置換されました（{replacements_made}件目）")
+        
+        # それでも見つからない場合、行単位で検索
+        if not match_found:
+            lines = code_content.split('\n')
+            if len(lines) > 1:
+                first_line = re.escape(lines[0])
+                last_line = re.escape(lines[-1])
+                
+                line_pattern = r'```\s*\n' + first_line + r'[\s\S]*?' + last_line + r'\s*\n```'
+                
+                old_text = result_text
+                result_text = re.sub(line_pattern, f'```bash\n{code_content}\n```', result_text)
+                
+                if old_text != result_text:
+                    replacements_made += 1
+                    match_found = True
+                    logger.debug(f"行単位パターンで置換されました（{replacements_made}件目）")
+        
+        if not match_found:
+            logger.warning(f"コードブロック「{code_content[:30]}...」の対応するマークダウンが見つかりませんでした")
     
-    markdown_text = markdown_text.replace("<!-- /wp:wp-mermaid/block --> ", "<!-- /wp:wp-mermaid/block -->")
+    logger.info(f"合計 {replacements_made}件 のコードブロックをbash指定に変換しました")
+    
+    # Step 5: 結果を確認するためにもう一度HTMLに変換（デバッグ用）
+    if debug_html_path:
+        check_html = markdown.markdown(result_text, extensions=['fenced_code', 'tables', 'nl2br'])
+        check_soup = BeautifulSoup(check_html, 'html.parser')
+        
+        remaining_no_lang = sum(1 for code in check_soup.find_all('code') if not code.get('class'))
+        logger.info(f"変換後の言語指定のないコードブロック: {remaining_no_lang}個")
+        
+        if remaining_no_lang > 0:
+            logger.warning("一部のコードブロックは変換されませんでした")
+    
+    return result_text
 
-    with open("markdown_text2.md", 'w', encoding='utf-8') as file:
-        file.write(markdown_text)
+
+def convert_mermaid_blocks(markdown_text):
+    """
+    MermaidブロックをWordPress用に変換する
     
-    return markdown_text
+    Args:
+        markdown_text (str): 変換するMarkdownテキスト
+        
+    Returns:
+        str: 変換後のテキスト
+    """
+    # Mermaidブロックを検出して置換する正規表現パターン
+    pattern = r'```mermaid\n(.*?)\n```'
+    
+    def replace_mermaid(match):
+        mermaid_content = match.group(1)
+        return (
+            '<!-- wp:wp-mermaid/block -->\n'
+            '<div class="wp-block-wp-mermaid-block mermaid">\n'
+            f'{mermaid_content}\n'
+            '</div>\n'
+            '<!-- /wp:wp-mermaid/block -->'
+        )
+    
+    # Mermaidブロックを置換
+    processed_text = re.sub(pattern, replace_mermaid, markdown_text, flags=re.DOTALL)
+    return processed_text
+
+def convert_markdown_with_mermaid(markdown_text):
+    """
+    Markdownテキストを変換する
+    - 言語指定のないコードブロックをbashとして変換
+    - MermaidブロックをWordPress用に変換
+    
+    Args:
+        markdown_text (str): 変換するMarkdownテキスト
+        
+    Returns:
+        str: 変換後のテキスト
+    """
+    processed_text = convert_code_blocks(markdown_text)
+    processed_text = convert_mermaid_blocks(processed_text)
+    return processed_text
 
 if __name__ == "__main__":
     import os
@@ -306,7 +371,7 @@ if __name__ == "__main__":
     # WordPressAPIのインスタンスを作成
     wp_api = WordPressAPI(BASE_URL, AUTH_USER, AUTH_PASS)
 
-    with open(r"article_draft\45_Kolors\README.md", 'r', encoding='utf-8') as file:
+    with open(r"draft\14_poke\pokedex-article.md", 'r', encoding='utf-8') as file:
         content = file.read()
 
     # カテゴリとタグの取得をテスト
