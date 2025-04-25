@@ -470,7 +470,7 @@ class NoteAPIV2:
 
         search_word = "sample"
         wait = WebDriverWait(driver, 10)
-        self._set_thumbnail(driver, wait, search_word, image_index)
+        # self._set_thumbnail(driver, wait, search_word, image_index)
 
         if post_setting:
             res = self._publish_article(driver, wait, input_tag_list)
