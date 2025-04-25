@@ -55,18 +55,18 @@ def main():
     parser.add_argument('--firefox-headless', action='store_true', help='Firefoxのヘッドレスモード')
 
     # Streamlitアプリオプション
-    parser.add_argument('-app', '--streamlit-app', action='store_true', help='Streamlitアプリケーションを起動する')
+    parser.add_argument('--webui', action='store_true', help='WebUIモードで起動する')
 
     args = parser.parse_args()
 
-    if args.streamlit_app:
+    if args.webui:
         import streamlit.web.cli as stcli
         oasis_app_path = os.path.join(os.path.dirname(__file__), 'app/oasis_app.py')
         sys.argv = ["streamlit", "run", oasis_app_path, "--"]
         sys.exit(stcli.main())
 
-    if not args.folder_path and not args.streamlit_app:
-        parser.error("folder_path is required unless --streamlit-app is specified")
+    if not args.folder_path:
+        parser.error("folder_path is required when not using --webui")
 
     oasis = OASIS(
         base_url=args.wp_url or Config.BASE_URL,
