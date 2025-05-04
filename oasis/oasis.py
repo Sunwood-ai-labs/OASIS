@@ -143,14 +143,31 @@ class OASIS:
         self.firefox_headless = firefox_headless
 
 
-    def process_folder(
-        self, folder_path: str, 
-        post_to_qiita: bool = False, 
-        post_to_note: bool = False, 
-        post_to_wp: bool = False, 
-        post_to_zenn: bool = False, 
-        slug = "test_slug", 
+    def process_files(
+        self,
+        markdown_file: str,
+        image_file: str = None,
+        post_to_qiita: bool = False,
+        post_to_note: bool = False,
+        post_to_wp: bool = False,
+        post_to_zenn: bool = False,
     ):
+        """単一のマークダウンファイルと画像を処理する"""
+        # FileHandlerのインスタンスを作成
+        file_handler = FileHandler()
+        # 日付付きのフォルダを作成し、ファイルを移動
+        folder_path = file_handler.create_dated_folder(markdown_file, image_file)
+        return self.process_folder(folder_path, post_to_qiita, post_to_note, post_to_wp, post_to_zenn)
+
+    def process_folder(
+        self,
+        folder_path: str,
+        post_to_qiita: bool = False,
+        post_to_note: bool = False,
+        post_to_wp: bool = False,
+        post_to_zenn: bool = False,
+    ):
+        """指定されたフォルダ内のマークダウンファイルと画像を処理する"""
         # FileHandlerのインスタンスを作成
         file_handler = FileHandler(folder_path)
 
