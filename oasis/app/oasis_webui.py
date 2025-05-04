@@ -1,6 +1,8 @@
 import streamlit as st
 import sys
 import os
+from datetime import datetime
+from oasis.config import Config
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -35,44 +37,74 @@ def run_streamlit_app(oasis: OASIS):
     </div>
     """, unsafe_allow_html=True)
 
-    # Input fields and options
+    # File upload section
+    st.markdown("### 📝 記事のアップロード")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        uploaded_markdown = st.file_uploader("マークダウンファイル (.md)", type=['md'], key="markdown")
+    with col2:
+        uploaded_image = st.file_uploader("サムネイル画像 (任意)", type=['png', 'jpg', 'jpeg'], key="image")
+
+    # Post options
+    st.markdown("### 🎯 投稿設定")
+    post_options = st.multiselect(
+        "投稿先を選択",
+        ["WordPress", "Qiita", "Note", "Zenn"],
+        default=["WordPress", "Qiita", "Note", "Zenn"]
+    )
+
+    # Preview cards
     col1, col2 = st.columns(2)
     with col1:
-        folder_path = st.text_input("処理するフォルダのパス", key="folder_path")
+        custom_card("📄 マークダウンファイル", 
+                   uploaded_markdown.name if uploaded_markdown else "未選択")
     with col2:
-        post_options = st.multiselect(
-            "投稿先を選択",
-            ["WordPress", "Qiita", "Note", "Zenn"],
-            default=["WordPress", "Qiita", "Note", "Zenn"]
-        )
+        custom_card("🖼️ サムネイル画像", 
+                   uploaded_image.name if uploaded_image else "未選択")
 
-    # Custom cards
-    col1, col2 = st.columns(2)
-    with col1:
-        custom_card("📁 選択されたフォルダ", folder_path if folder_path else "未選択")
-    with col2:
-        custom_card("🎯 選択された投稿先", ", ".join(post_options))
-
-    # Streamlit button with custom CSS class
+    # Process button and logic
     start_process = st.button("🚀 処理開始", key="start_process", use_container_width=True)
 
-    # Process logic
     if start_process:
-        if folder_path:
+        if not uploaded_markdown:
+            st.error("⚠️ マークダウンファイルをアップロードしてください。")
+            return
+
+        try:
+            # Create draft directory with timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            draft_dir = os.path.join(Config.WEBUI_DRAFT_DIR, timestamp)
+            os.makedirs(draft_dir, exist_ok=True)
+
+            # Save uploaded files directly under the timestamp directory
+            md_path = os.path.join(draft_dir, os.path.basename(uploaded_markdown.name))
+            with open(md_path, "wb") as f:
+                f.write(uploaded_markdown.getbuffer())
+
+            img_path = None
+            if uploaded_image:
+                img_path = os.path.join(draft_dir, os.path.basename(uploaded_image.name))
+                with open(img_path, "wb") as f:
+                    f.write(uploaded_image.getbuffer())
+
+            # Process files
             with st.spinner("処理中..."):
-                result = oasis.process_folder(
-                    folder_path,
+                result = oasis.process_files(
+                    md_path,
+                    img_path,
                     post_to_wp="WordPress" in post_options,
                     post_to_qiita="Qiita" in post_options,
                     post_to_note="Note" in post_options,
                     post_to_zenn="Zenn" in post_options
                 )
-            
+
             st.success("✅ 処理が完了しました！")
             
             with st.expander("結果の詳細"):
                 st.write(f"📘 タイトル: {result['title']}")
                 st.write(f"🔗 スラグ: {result['slug']}")
+                st.write("📁 作成されたフォルダ:", os.path.dirname(md_path))
                 
                 st.subheader("📁 カテゴリ")
                 for category in result['categories']:
@@ -81,8 +113,9 @@ def run_streamlit_app(oasis: OASIS):
                 st.subheader("🏷️ タグ")
                 for tag in result['tags']:
                     st.markdown(f"- **{tag['name']}** (ID: `{tag['slug']}`)")
-        else:
-            st.error("⚠️ フォルダパスを入力してください。")
+
+        except Exception as e:
+            st.error(f"⚠️ エラーが発生しました: {str(e)}")
 
 if __name__ == "__main__":
     oasis = OASIS(

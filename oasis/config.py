@@ -14,6 +14,9 @@ class Config:
     NOTE_EMAIL = os.getenv('NOTE_EMAIL')
     NOTE_PASSWORD = os.getenv('NOTE_PASSWORD')
     NOTE_USER_ID = os.getenv('NOTE_USER_ID')
+    
+    # WebUI用の下書きフォルダのパス
+    WEBUI_DRAFT_DIR = os.getenv('WEBUI_DRAFT_DIR', os.path.join(os.getcwd(), "draft"))
 
     # WordPressのエンドポイント
     END_POINT_URL = f"{BASE_URL}/wp-json/wp/v2/posts/" if BASE_URL else None

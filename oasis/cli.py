@@ -9,11 +9,14 @@ import os
 def main():
     tprint(">>  OASIS  <<", font="rnd-xlarge")
     parser = argparse.ArgumentParser(
-        description="指定されたフォルダを処理し、WordPress, Qiita, Noteへの投稿を作成します。"
+        description="Markdown記事をWordPress, Qiita, Note, Zennに投稿します。フォルダを指定するか、マークダウンファイルと画像を直接指定できます。"
     )
 
-    # main
-    parser.add_argument('--folder_path', type=str, help='処理するフォルダのパス')
+    # ファイル/フォルダ指定
+    file_group = parser.add_mutually_exclusive_group()
+    file_group.add_argument('--folder', type=str, help='処理するフォルダのパス')
+    file_group.add_argument('--markdown', type=str, help='投稿するマークダウンファイルのパス')
+    parser.add_argument('--image', type=str, help='サムネイル画像のパス（マークダウンファイルと一緒に使用）')
 
     # llm
     parser.add_argument('--llm-model', type=str, help='使用するLLMモデル')
@@ -55,18 +58,18 @@ def main():
     parser.add_argument('--firefox-headless', action='store_true', help='Firefoxのヘッドレスモード')
 
     # Streamlitアプリオプション
-    parser.add_argument('-app', '--streamlit-app', action='store_true', help='Streamlitアプリケーションを起動する')
+    parser.add_argument('--webui', action='store_true', help='WebUIモードで起動する')
 
     args = parser.parse_args()
 
-    if args.streamlit_app:
+    if args.webui:
         import streamlit.web.cli as stcli
-        oasis_app_path = os.path.join(os.path.dirname(__file__), 'app/oasis_app.py')
-        sys.argv = ["streamlit", "run", oasis_app_path, "--"]
+        oasis_webui_path = os.path.join(os.path.dirname(__file__), 'app/oasis_webui.py')
+        sys.argv = ["streamlit", "run", oasis_webui_path, "--"]
         sys.exit(stcli.main())
 
-    if not args.folder_path and not args.streamlit_app:
-        parser.error("folder_path is required unless --streamlit-app is specified")
+    if not (args.folder or args.markdown) and not args.webui:
+        parser.error("--folder または --markdown オプションが必要です")
 
     oasis = OASIS(
         base_url=args.wp_url or Config.BASE_URL,
@@ -92,10 +95,23 @@ def main():
         f"使用中のLLMモデル: {oasis.config.LLM_MODEL}, 最大リトライ回数: {args.max_retries}"
     )
 
-    result = oasis.process_folder(
-        args.folder_path, 
-        post_to_qiita=args.qiita, post_to_note=args.note, post_to_wp=args.wp, post_to_zenn=args.zenn
-    )
+    if args.folder:
+        result = oasis.process_folder(
+            args.folder,
+            post_to_qiita=args.qiita,
+            post_to_note=args.note,
+            post_to_wp=args.wp,
+            post_to_zenn=args.zenn
+        )
+    else:
+        result = oasis.process_files(
+            args.markdown,
+            args.image,
+            post_to_qiita=args.qiita,
+            post_to_note=args.note,
+            post_to_wp=args.wp,
+            post_to_zenn=args.zenn
+        )
 
     logger.info("投稿が正常に作成されました！")
     logger.info(f"タイトル: {result['title']}")
