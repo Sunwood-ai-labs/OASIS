@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+  oasis:
+    build: .
+    container_name: oasis_webui
+    # ホストとコンテナのポートをマッピング
+    ports:
+      - "8501:8501"
+    # 開発時はローカルコードをマウント
+    # volumes:
+    #   - .:/app
+    # 環境変数はルートの .env から読み込まれる
+    env_file:
+      - .env
+    # デフォルトコマンドは --webui
+    # command: ["--webui"]
+
+    tty: true
+    restart: always

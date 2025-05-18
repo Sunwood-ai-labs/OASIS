@@ -221,5 +221,20 @@ OASISの開発にあたり、多大な貢献をしていただいた方々に感
 
 - Note APIの開発は [Mr-SuperInsane/NoteClient](https://github.com/Mr-SuperInsane/NoteClient) を参考にさせていただきました。
 
+## Docker Composeでの起動 🐳
+
+Docker Composeを使用してOASISのWeb UIを簡単にコンテナ起動できます。
+ルートディレクトリに`.env`ファイルを配置し、必要な環境変数を設定した上で、以下のコマンドを実行してください:
+
+```bash
+docker-compose up --build
+```
+
+起動後、ブラウザで [http://localhost:8501](http://localhost:8501) にアクセスするとWeb UIが表示されます。
+CLIコマンドを実行する場合は、以下のように実行できます:
+```bash
+docker-compose run --rm oasis --help
+```
+
 </readme>
 ```
