@@ -6,14 +6,34 @@ from .logger import logger  # logger をインポート
 load_dotenv(dotenv_path=os.path.join(os.getcwd(), '.env'))
 
 class Config:
+    # WordPress設定
     AUTH_USER = os.getenv('AUTH_USER')
     AUTH_PASS = os.getenv('AUTH_PASS')
     BASE_URL = os.getenv('BASE_URL')
+    
+    # LLM設定
     LLM_MODEL = os.getenv('LLM_MODEL', 'gemini/gemini-1.5-pro-latest')  # デフォルトモデル
+    MAX_RETRIES = int(os.getenv('MAX_RETRIES', '10'))  # LLMリクエストの最大リトライ回数
+    
+    # Qiita設定
     QIITA_TOKEN = os.getenv('QIITA_TOKEN')
+    QIITA_POST_PUBLISH = os.getenv('QIITA_POST_PUBLISH', 'false').lower() == 'true'
+    
+    # Note設定
     NOTE_EMAIL = os.getenv('NOTE_EMAIL')
     NOTE_PASSWORD = os.getenv('NOTE_PASSWORD')
     NOTE_USER_ID = os.getenv('NOTE_USER_ID')
+    NOTE_PUBLISH = os.getenv('NOTE_PUBLISH', 'false').lower() == 'true'
+    NOTE_API_VER = os.getenv('NOTE_API_VER', 'v2')
+    
+    # Zenn設定
+    ZENN_OUTPUT_PATH = os.getenv('ZENN_OUTPUT_PATH', r"C:\Prj\Zenn\articles")
+    ZENN_PUBLISH = os.getenv('ZENN_PUBLISH', 'false').lower() == 'true'
+    
+    # Firefox設定
+    FIREFOX_BINARY_PATH = os.getenv('FIREFOX_BINARY_PATH')
+    FIREFOX_PROFILE_PATH = os.getenv('FIREFOX_PROFILE_PATH')
+    FIREFOX_HEADLESS = os.getenv('FIREFOX_HEADLESS', 'false').lower() == 'true'
     
     # WebUI用の下書きフォルダのパス
     WEBUI_DRAFT_DIR = os.getenv('WEBUI_DRAFT_DIR', os.path.join(os.getcwd(), "draft"))
