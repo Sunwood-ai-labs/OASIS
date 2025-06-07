@@ -3,6 +3,7 @@ import sys
 from .oasis import OASIS
 from .config import Config
 from .logger import logger
+from .services.oasis_runner import run_oasis
 from art import *
 import os
 
@@ -19,9 +20,9 @@ def main():
     parser.add_argument('--image', type=str, help='サムネイル画像のパス（マークダウンファイルと一緒に使用）')
 
     # llm
-    parser.add_argument('--llm-model', type=str, help='使用するLLMモデル')
+    parser.add_argument('--llm-model', type=str, default=Config.LLM_MODEL, help='使用するLLMモデル')
     parser.add_argument(
-        '--max-retries', type=int, default=10, help='LLMリクエストの最大リトライ回数'
+        '--max-retries', type=int, default=Config.MAX_RETRIES, help='LLMリクエストの最大リトライ回数'
     )
     
     # mode
@@ -31,31 +32,29 @@ def main():
     parser.add_argument('--zenn', action='store_true', help='Zennにも投稿する')
 
     # wp
-    parser.add_argument('--wp-user', type=str, help='WordPressのユーザー名')
-    parser.add_argument('--wp-pass', type=str, help='WordPressのパスワード')
-    parser.add_argument('--wp-url', type=str, help='WordPressのURL')
+    parser.add_argument('--wp-user', type=str, default=Config.AUTH_USER, help='WordPressのユーザー名')
+    parser.add_argument('--wp-pass', type=str, default=Config.AUTH_PASS, help='WordPressのパスワード')
+    parser.add_argument('--wp-url', type=str, default=Config.BASE_URL, help='WordPressのURL')
 
     # qiita
-    parser.add_argument('--qiita-token', type=str, help='QiitaのAPIトークン')
-    parser.add_argument('--qiita-post-publish', action='store_true', help='Qiitaの公開設定')
+    parser.add_argument('--qiita-token', type=str, default=Config.QIITA_TOKEN, help='QiitaのAPIトークン')
+    parser.add_argument('--qiita-post-publish', action='store_true', default=Config.QIITA_POST_PUBLISH, help='Qiitaの公開設定')
 
     # note
-    parser.add_argument('--note-email', type=str, help='Noteのメールアドレス')
-    parser.add_argument('--note-password', type=str, help='Noteのパスワード')
-    parser.add_argument('--note-user-id', type=str, help='NoteのユーザーID')
-    parser.add_argument('--note-publish', action='store_true', help='公開するかどうか')
-    parser.add_argument('--note-api-ver', type=str, default="v2", help='NoteのAPI Ver')
+    parser.add_argument('--note-email', type=str, default=Config.NOTE_EMAIL, help='Noteのメールアドレス')
+    parser.add_argument('--note-password', type=str, default=Config.NOTE_PASSWORD, help='Noteのパスワード')
+    parser.add_argument('--note-user-id', type=str, default=Config.NOTE_USER_ID, help='NoteのユーザーID')
+    parser.add_argument('--note-publish', action='store_true', default=Config.NOTE_PUBLISH, help='公開するかどうか')
+    parser.add_argument('--note-api-ver', type=str, default=Config.NOTE_API_VER, help='NoteのAPI Ver')
     
     # zenn
-    # parser.add_argument('--qiita-token', type=str, help='QiitaのAPIトークン')
-    # parser.add_argument('--qiita-post-publish', action='store_true', help='Qiitaの公開設定')
-    parser.add_argument('--zenn-output-path', default=r"C:\Prj\Zenn\articles", help='ZennAPI V2の出力フォルダ')
-    parser.add_argument('--zenn-publish', action='store_true', help='ZennAPI V2で記事を公開設定にする')
+    parser.add_argument('--zenn-output-path', default=Config.ZENN_OUTPUT_PATH, help='ZennAPI V2の出力フォルダ')
+    parser.add_argument('--zenn-publish', action='store_true', default=Config.ZENN_PUBLISH, help='ZennAPI V2で記事を公開設定にする')
 
     # Firefox 設定
-    parser.add_argument('--firefox-binary-path', type=str, help='Firefox の実行ファイルへのパス')
-    parser.add_argument('--firefox-profile-path', type=str, help='使用する Firefox プロファイルへのパス')
-    parser.add_argument('--firefox-headless', action='store_true', help='Firefoxのヘッドレスモード')
+    parser.add_argument('--firefox-binary-path', type=str, default=Config.FIREFOX_BINARY_PATH, help='Firefox の実行ファイルへのパス')
+    parser.add_argument('--firefox-profile-path', type=str, default=Config.FIREFOX_PROFILE_PATH, help='使用する Firefox プロファイルへのパス')
+    parser.add_argument('--firefox-headless', action='store_true', default=Config.FIREFOX_HEADLESS, help='Firefoxのヘッドレスモード')
 
     # Streamlitアプリオプション
     parser.add_argument('--webui', action='store_true', help='WebUIモードで起動する')
