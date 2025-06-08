@@ -184,6 +184,83 @@ class WordPressAPI:
             page += 1
         return items
 
+def should_skip_code_block(code_content):
+    """
+    コードブロックをスキップすべきかどうかを判定する
+    
+    Args:
+        code_content (str): コードブロックの内容
+        
+    Returns:
+        bool: スキップすべき場合はTrue
+    """
+    if not code_content or not code_content.strip():
+        return True
+    
+    content = code_content.strip()
+    
+    # 非常に短いコンテンツ（3文字未満）
+    if len(content) < 3:
+        return True
+    
+    # 単一のファイル拡張子（例: .qmd, .py, .js など）
+    if len(content.split('\n')) == 1 and content.startswith('.') and len(content) < 10:
+        return True
+    
+    # 単一のファイルパス（拡張子を含む短いパス）
+    if len(content.split('\n')) == 1 and ('.' in content) and len(content) < 50:
+        # Windowsパス、Unixパスの形式チェック
+        if ('\\' in content or '/' in content) and content.count('.') == 1:
+            return True
+    
+    # 単語が1つだけで、明らかにコードではない
+    words = content.split()
+    if len(words) == 1 and len(words[0]) < 20:
+        # 一般的なファイル名パターン
+        if '.' in words[0] and not any(char in words[0] for char in '()[]{}=+-*/<>'):
+            return True
+    
+    return False
+
+def is_likely_code_content(code_content):
+    """
+    コンテンツが実際のコードである可能性が高いかを判定する
+    
+    Args:
+        code_content (str): コードブロックの内容
+        
+    Returns:
+        bool: コードである可能性が高い場合はTrue
+    """
+    if not code_content or not code_content.strip():
+        return False
+    
+    content = code_content.strip()
+    
+    # 複数行の場合はコードの可能性が高い
+    if len(content.split('\n')) > 1:
+        return True
+    
+    # プログラミング言語のキーワードや記号が含まれている
+    code_indicators = [
+        '()', '[]', '{}', '=', '+=', '-=', '*=', '/=',
+        'function', 'def ', 'class ', 'import ', 'from ',
+        'var ', 'let ', 'const ', 'if ', 'else', 'for ',
+        'while ', 'return', 'print', 'console.log',
+        '#!/', '<?', '?>', '<script', '</script>',
+        'SELECT', 'FROM', 'WHERE', 'INSERT', 'UPDATE'
+    ]
+    
+    for indicator in code_indicators:
+        if indicator in content:
+            return True
+    
+    # 長いテキスト（50文字以上）でスペースが少ない場合
+    if len(content) > 50 and content.count(' ') / len(content) < 0.1:
+        return True
+    
+    return False
+
 def convert_code_blocks(markdown_text, debug_html_path=None):
     """
     Markdownのコードブロックを適切な形式に変換する
@@ -245,57 +322,74 @@ def convert_code_blocks(markdown_text, debug_html_path=None):
     result_text = markdown_text
     
     for code_block in no_lang_blocks:
-        code_content = code_block.text
+        code_content = code_block.text.strip()
         logger.debug(f"変換対象のコードブロック: {code_content[:30]}...")
         
-        # エスケープして正規表現で安全に使用
-        escaped_content = re.escape(code_content)
+        # 以下の条件に該当する場合はスキップ（コードブロックではない可能性が高い）
+        if should_skip_code_block(code_content):
+            logger.debug(f"コードブロックではないと判断してスキップ: {code_content[:20]}...")
+            continue
         
-        # 対応するマークダウンブロックを探す
-        # まず完全一致を試す
-        exact_pattern = r'```\s*\n' + escaped_content + r'\s*\n```'
         match_found = False
         
-        old_text = result_text
-        result_text = re.sub(exact_pattern, f'```bash\n{code_content}\n```', result_text)
-        
-        if old_text != result_text:
-            replacements_made += 1
-            match_found = True
-            logger.debug(f"完全一致パターンで置換されました（{replacements_made}件目）")
-        
-        # 完全一致しなかった場合、コードの先頭部分だけで検索
-        if not match_found and len(code_content) > 10:
-            prefix = re.escape(code_content[:min(30, len(code_content))])
-            approx_pattern = r'```\s*\n' + prefix + r'[\s\S]*?\n```'
+        try:
+            # エスケープして正規表現で安全に使用
+            escaped_content = re.escape(code_content)
             
-            old_text = result_text
-            result_text = re.sub(approx_pattern, f'```bash\n{code_content}\n```', result_text)
+            # パターン1: 完全一致を試す（空白の扱いを柔軟に）
+            patterns_to_try = [
+                # 厳密な完全一致
+                r'```\s*\n' + escaped_content + r'\s*\n```',
+                # 前後の空白を柔軟に処理
+                r'```\s*' + escaped_content + r'\s*```',
+                # 改行の扱いを柔軟に
+                r'```\s*\n?' + escaped_content + r'\n?\s*```'
+            ]
             
-            if old_text != result_text:
-                replacements_made += 1
-                match_found = True
-                logger.debug(f"先頭一致パターンで置換されました（{replacements_made}件目）")
-        
-        # それでも見つからない場合、行単位で検索
-        if not match_found:
-            lines = code_content.split('\n')
-            if len(lines) > 1:
-                first_line = re.escape(lines[0])
-                last_line = re.escape(lines[-1])
-                
-                line_pattern = r'```\s*\n' + first_line + r'[\s\S]*?' + last_line + r'\s*\n```'
-                
+            for i, pattern in enumerate(patterns_to_try):
                 old_text = result_text
-                result_text = re.sub(line_pattern, f'```bash\n{code_content}\n```', result_text)
+                result_text = re.sub(pattern, f'```bash\n{code_content}\n```', result_text, flags=re.MULTILINE | re.DOTALL)
                 
                 if old_text != result_text:
                     replacements_made += 1
                     match_found = True
-                    logger.debug(f"行単位パターンで置換されました（{replacements_made}件目）")
+                    logger.debug(f"パターン{i+1}で置換されました（{replacements_made}件目）")
+                    break
+            
+            # 完全一致しなかった場合、コードの先頭部分だけで検索
+            if not match_found and len(code_content) > 10:
+                lines = code_content.split('\n')
+                if lines:
+                    first_line = re.escape(lines[0].strip())
+                    if first_line:  # 空行でない場合のみ
+                        prefix_patterns = [
+                            r'```\s*\n' + first_line + r'[\s\S]*?\n```',
+                            r'```\s*' + first_line + r'[\s\S]*?```'
+                        ]
+                        
+                        for pattern in prefix_patterns:
+                            old_text = result_text
+                            result_text = re.sub(pattern, f'```bash\n{code_content}\n```', result_text, flags=re.MULTILINE | re.DOTALL)
+                            
+                            if old_text != result_text:
+                                replacements_made += 1
+                                match_found = True
+                                logger.debug(f"先頭一致パターンで置換されました（{replacements_made}件目）")
+                                break
+                            
+                        if match_found:
+                            break
+        
+        except re.error as e:
+            logger.warning(f"正規表現エラー: {e}, コンテンツ: {code_content[:30]}...")
+            continue
         
         if not match_found:
-            logger.warning(f"コードブロック「{code_content[:30]}...」の対応するマークダウンが見つかりませんでした")
+            # 実際のコードっぽい内容の場合のみ警告
+            if is_likely_code_content(code_content):
+                logger.warning(f"コードブロック「{code_content[:30]}...」の対応するマークダウンが見つかりませんでした")
+            else:
+                logger.debug(f"テキストコンテンツ「{code_content[:30]}...」はコードブロックとして処理不要")
     
     logger.info(f"合計 {replacements_made}件 のコードブロックをbash指定に変換しました")
     
