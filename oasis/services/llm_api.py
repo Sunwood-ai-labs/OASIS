@@ -91,7 +91,7 @@ class LLMService:
         prompt = f"""
         以下の日本語のタイトルを英語に翻訳し、WordPressのslugとして適切な形式に変換してください。
         slugは短く、簡潔で、URLに適した形式にしてください。
-
+        
         日本語タイトル: {title}
 
         回答は以下のJSONフォーマットで提供してください：

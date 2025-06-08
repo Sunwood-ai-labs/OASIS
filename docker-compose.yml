@@ -7,8 +7,8 @@ services:
     ports:
       - "8501:8501"
     # 開発時はローカルコードをマウント
-    # volumes:
-    #   - .:/app
+    volumes:
+      - .:/app
     # 環境変数はルートの .env から読み込まれる
     env_file:
       - .env

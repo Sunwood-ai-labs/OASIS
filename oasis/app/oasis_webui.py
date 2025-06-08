@@ -74,7 +74,7 @@ def run_streamlit_app():
     post_options = st.multiselect(
         "投稿先を選択",
         ["WordPress", "Qiita", "Note", "Zenn"],
-        default=["WordPress", "Qiita", "Note", "Zenn"]
+        default=["WordPress", "Qiita", "Zenn"]
     )
 
     # Preview cards
